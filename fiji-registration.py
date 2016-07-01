@@ -1,15 +1,6 @@
 from mpicbg.trakem2.transform import AffineModel3D;
 from mpicbg.models import PointMatch, Point;
 
-# translation by (2,2,2)
-'''
-pointPairs = []
-pointPairs.append(PointMatch(Point([0, 0, 0]), Point([2, 2, 2])))
-pointPairs.append(PointMatch(Point([1, 0, 0]), Point([3, 2, 2])))
-pointPairs.append(PointMatch(Point([0, 1, 0]), Point([2, 3, 2])))
-pointPairs.append(PointMatch(Point([0, 0, 1]), Point([2, 2, 3])))
-'''
-
 #
 # List of matching point pairs; for 3-D one needs 4; for 2-D one needs 3 
 #
@@ -25,15 +16,19 @@ pointPairs.append(PointMatch(Point([130, 300, 100]), Point([100, 300, 100])))
 model = AffineModel3D();
 model.fit( pointPairs );
 
-
 #
-# Apply transformation to a data set
+# Apply transformation data set
 # 
 
-# - e.g., using TransformJ
-#IJ.run(imp, "TransformJ Affine", "matrix=N:/ALMF_presentations/0000--Tischi--Practical_ImageJ/data-all/registration/30-along-x.txt interpolation=Linear background=0.0");
+# using TransformJ
+# - save transformation matrix as affine.txt file
+# - make sure that the image scaling is in pixels, as TransfromJ works on scaled coordinates
 
-# - e.g., using something else
+#  IJ.run(imp, "TransformJ Affine", "matrix=[.../affine.txt] interpolation=Linear background=0.0");
+
+# using imglib2 
+
+# using IJ ops
 
 
 #
