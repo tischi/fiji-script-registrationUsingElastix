@@ -2,9 +2,9 @@
 
 This repository contains information about registration algorithms (in Fiji). 
 
-## softwares to try
+## software to try
 
-### x,y,z maximum projections with stackreg and TransformJ
+### x,y,z maximum projections with stackreg and then 3-D with TransformJ
 
 - would have to write code
 
