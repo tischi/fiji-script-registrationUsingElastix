@@ -11,6 +11,7 @@ This repository contains information about registration algorithms (in Fiji).
 ### elastix 
 
 - http://elastix.isi.uu.nl
+- figure out whether there is a central installation
 - ask Stefan Guenther whether they have an implementation that I could try
 
 ### Perrine's java code
