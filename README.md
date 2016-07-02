@@ -1,29 +1,29 @@
 # fiji-registration
 
-This repository contains information about registration algorithms (in Fiji). The aim is to make workflows that can be taught in a course.
+This repository contains information about registration algorithms (in Fiji). 
 
 ## softwares to try
 
+### x,y,z maximum projections with stackreg and TransformJ
+
+- would have to write code
+
 ### elastix 
 
-- http://elastix.isi.uu.nl/
-- ask Stefan whether they have an implementation that I could try
-- 
+- http://elastix.isi.uu.nl
+- ask Stefan Guenther whether they have an implementation that I could try
 
 ### Perrine's java code
 
-- ...
-- 
+- try to get it running
 
 ### Amira
 
-- try with Martin
-- 
+- try with Martin Schorb
 
 ### Icy with ec-CLEM Plugin
 
-- try with Martin
-- 
+- try with Martin Schorb
 
 ### Imglib2
 
@@ -31,6 +31,4 @@ This repository contains information about registration algorithms (in Fiji). Th
 years ago for ImgLib2. It's in one of the advanced tutorials and works
 in an arbitrary number of dimensions. Images need to be approximately
 registered."
-
 - find tutorial
-- 
