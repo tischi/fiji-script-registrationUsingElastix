@@ -84,7 +84,7 @@ def convert_result(original_filename, output_folder, save_as_max):
 #
 
 # - input folder
-input_folder = "X:\\Henning\\Tischi_Reg\\MIP_subset"
+input_folder = "X:\\Henning\\Tischi_Reg\\MIP_subset_down-sized"
 #input_folder = "C:\\Users\\tischer\\Desktop\\test"
 
 # file list
