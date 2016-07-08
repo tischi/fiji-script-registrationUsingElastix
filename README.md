@@ -2,17 +2,21 @@
 
 This repository contains information about registration algorithms (in Fiji). 
 
-## things to try
+## fiji--elastix.py
+
+Fiji script to run elastix registration.
+Fiji handles the data and runs elastix via system calls.
+
+### requirements
+
+- fiji: https://fiji.sc/
+- elastix (tested with windows binary): http://elastix.isi.uu.nl/download.php
+
+## other things to try
 
 ### x,y,z maximum projections with stackreg and then 3-D with TransformJ
 
 - would have to write code
-
-### elastix 
-
-- works very well, seems very complete
-- http://elastix.isi.uu.nl
-- wrap into Fiji
 
 ### Perrine's java code
 
