@@ -171,12 +171,10 @@ if not os.path.isdir(output_folder):
 if(trafo=="running"):
 
   # reference file
-  convert_for_elastix(os.path.join(input_folder, file_list[i_ref]), "previous.mha", output_folder)
-  previous_result_file = os.path.join(output_folder, "previous.mha")
-  previous_transformation = os.path.join(output_folder, "PreviousTransformParameters.txt")
-  # copy reference in mha format
-  copy_file(os.path.join(output_folder, "previous.mha"), os.path.join(output_folder, file_list[i_ref]+".mha")) 
-
+  print("reference file: "+os.path.join(input_folder, file_list[i_ref]))
+  convert_for_elastix(os.path.join(input_folder, file_list[i_ref]), "reference.mha", output_folder)
+  copy_file(os.path.join(output_folder, "reference.mha"), os.path.join(output_folder, file_list[i_ref]+".mha")) 
+  
   # forward      
   for k, i in enumerate(range(i_ref+1,n_files,1)):
     print("transforming: "+file_list[i])  
