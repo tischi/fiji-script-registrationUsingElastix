@@ -43,12 +43,13 @@ def cmd(args):
   return(output)
      
 def convert_for_elastix(input_file, mhd_file_name, output_folder):
+  print("  creating mha")
   print("    reading tif")
   start_time = time.time()
   imp = IJ.openImage(input_file)
   print("      time spent: "+str(round(time.time()-start_time,3)))
   output_file = os.path.join(output_folder, mhd_file_name)
-  print("    writing mhd")
+  print("    writing mha")
   start_time = time.time()
   IJ.run(imp, "MHD/MHA ...", "save="+output_file);
   print("      time spent: "+str(round(time.time()-start_time,3)))
@@ -91,6 +92,34 @@ def convert_from_elastix(original_filename, output_folder, save_as_max):
       IJ.saveAs(IJ.getImage(), "Tiff", output_file+"--z-max.tif")
       print("      time spent: "+str(round(time.time()-start_time,3)))
   return output_file
+
+
+def transform(fixed_file, moving_file, output_folder, parameter_file):
+  if fixed_file=="use_previous_result":
+     fixed_file = os.path.join(output_folder, "fixed.mha") 
+     os.remove(fixed_file); time.sleep(1)
+     os.rename(os.path.join(output_folder, "result.0.mha"), fixed_file); time.sleep(1)
+     shutil.copyfile(os.path.join(output_folder, "TransformParameters.0.txt"), previous_transformation); time.sleep(1)
+     deleteLine(previous_transformation, "InitialTransform"); time.sleep(1)
+     print("  running elastix with initialisation")
+     start_time = time.time()   
+     output = cmd([elastix, '-f', fixed_file, '-m', moving_file, '-out', output_folder, '-p', parameter_file, '-t0', previous_transformation])
+     print("    time spent: "+str(round(time.time()-start_time,3)))
+  else:
+    fixed_file = convert_for_elastix(fixed_file, "fixed.mha", output_folder)   
+    moving_file = convert_for_elastix(moving_file, "moving.mha", output_folder)  
+    print("  running elastix without initialisation")
+    start_time = time.time()   
+    output = cmd([elastix, '-f', fixed_file, '-m', moving_file, '-out', output_folder, '-p', parameter_file])
+    print("    time spent: "+str(round(time.time()-start_time,3)))
+  return(output)
+
+def copy_file(src, dst):
+  print("  copying file: "+src)
+  start_time = time.time()
+  shutil.copyfile(src, dst)
+  print("    time spent: "+str(round(time.time()-start_time,3)))
+ 
 
 #
 # GET PARAMETERS
@@ -139,46 +168,41 @@ if not os.path.isdir(output_folder):
 #
 
 
-i_ref = 10
-
 if(trafo=="running"):
-  
-  print("converting reference file: " + file_list[i_ref])
+
+  # reference file
   convert_for_elastix(os.path.join(input_folder, file_list[i_ref]), "previous.mha", output_folder)
   previous_result_file = os.path.join(output_folder, "previous.mha")
   previous_transformation = os.path.join(output_folder, "PreviousTransformParameters.txt")
-        
-  for k, i in enumerate(range(i_ref+5,n_files,1)):
-    
-    print("matching: "+file_list[i])
-    
-    print("  converting .tif to .mha")
-    next_file = convert_for_elastix(os.path.join(input_folder, file_list[i]), "moving.mha", output_folder)
-    
+  # copy reference in mha format
+  copy_file(os.path.join(output_folder, "previous.mha"), os.path.join(output_folder, file_list[i_ref]+".mha")) 
+
+  # forward      
+  for k, i in enumerate(range(i_ref+1,n_files,1)):
+    print("transforming: "+file_list[i])  
     # run registration
-    print("  running elastix")
-    start_time = time.time()
     if k==0:
-      output = cmd([elastix, '-f', previous_result_file, '-m', next_file, '-out', output_folder, '-p', parameter_file])
+      transform(os.path.join(input_folder, file_list[i_ref]), os.path.join(input_folder, file_list[i]), output_folder, parameter_file)  
     else:
-      print("    using previous transformation for initialisation")
-      os.remove(os.path.join(output_folder, "previous.mha")); time.sleep(1)
-      os.rename(os.path.join(output_folder, "result.0.mha"), os.path.join(output_folder, "previous.mha")); time.sleep(1)
-      shutil.copyfile(os.path.join(output_folder, "TransformParameters.0.txt"), previous_transformation); time.sleep(1)
-      deleteLine(previous_transformation, "InitialTransform"); time.sleep(1)
-      output = cmd([elastix, '-f', previous_result_file, '-m', next_file, '-out', output_folder, '-p', parameter_file, '-t0', previous_transformation])
-    
-    print("      time spent: "+str(round(time.time()-start_time,3)))
-    print(output)
-    
+      transform("use_previous_result", os.path.join(input_folder, file_list[i]), output_folder, parameter_file)   
     # copy (store) transformed file
-    print("  copying result file")
-    start_time = time.time()
-    shutil.copyfile(os.path.join(output_folder, "result.0.mha"), os.path.join(output_folder, file_list[i]+".mha"))
-    print("      time spent: "+str(round(time.time()-start_time,3)))
-    
+    copy_file(os.path.join(output_folder, "result.0.mha"), os.path.join(output_folder, file_list[i]+".mha"))
     # clean up
     IJ.run("Close All", "");
+    
+  # backward      
+  for k, i in enumerate(range(i_ref-1,0,-1)):
+    print("transforming: "+file_list[i])  
+    # run registration
+    if k==0:
+      transform(os.path.join(input_folder, file_list[i_ref]), os.path.join(input_folder, file_list[i]), output_folder, parameter_file)  
+    else:
+      transform("use_previous_result", os.path.join(input_folder, file_list[i]), output_folder, parameter_file)   
+    # copy (store) transformed file
+    copy_file(os.path.join(output_folder, "result.0.mha"), os.path.join(output_folder, file_list[i]+".mha"))
+    # clean up
+    IJ.run("Close All", "");
+    
 
 
 if(trafo=="fixed"):
