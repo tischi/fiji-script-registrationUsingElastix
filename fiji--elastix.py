@@ -54,6 +54,17 @@ def convert_for_elastix(input_file, mhd_file_name, output_folder):
   print("      time spent: "+str(round(time.time()-start_time,3)))
   return output_file
 
+def deleteLine(fn, txt):
+  f = open(fn)
+  output = []
+  for line in f:
+    if not txt in line:
+      output.append(line)
+  f.close()
+  f = open(fn, 'w')
+  f.writelines(output)
+  f.close()
+
 # - the conversion to unsigned int is ugly!
 # - weird behavior of IJ.openImage: it shows the image but does not put anything into the imp
 #   - report to Wayne
@@ -86,8 +97,8 @@ def convert_from_elastix(original_filename, output_folder, save_as_max):
 #
 
 # - input folder
-input_folder = "X:\\Henning\\Tischi_Reg\\MIP"
-#input_folder = "C:\\Users\\tischer\\Desktop\\test"
+#input_folder = "X:\\Henning\\Tischi_Reg\\MIP"
+input_folder = "C:\\Users\\tischer\\Desktop\\2D-files"
 
 # registration method
 parameter_file = "C:\\Users\\tischer\\Desktop\\parameters_Affine.txt"
@@ -113,6 +124,7 @@ for file_name in os.listdir(input_folder):
 
 # reference image
 i_ref = int(round(len(file_list)/2))
+n_files = len(file_list) 
 
 # output folder
 output_folder = input_folder+"--fiji"
@@ -127,15 +139,17 @@ if not os.path.isdir(output_folder):
 #
 
 
-i_ref = 1
+i_ref = 10
 
 if(trafo=="running"):
   
   print("converting reference file: " + file_list[i_ref])
   convert_for_elastix(os.path.join(input_folder, file_list[i_ref]), "previous.mha", output_folder)
   previous_result_file = os.path.join(output_folder, "previous.mha")
+  previous_transformation = os.path.join(output_folder, "PreviousTransformParameters.txt")
+        
+  for k, i in enumerate(range(i_ref+5,n_files,1)):
     
-  for k, i in enumerate(range(i_ref+3,i_ref+10,3)):
     print("matching: "+file_list[i])
     
     print("  converting .tif to .mha")
@@ -148,22 +162,20 @@ if(trafo=="running"):
       output = cmd([elastix, '-f', previous_result_file, '-m', next_file, '-out', output_folder, '-p', parameter_file])
     else:
       print("    using previous transformation for initialisation")
-      os.remove(os.path.join(output_folder, "previous.mha"))
-      time.sleep(1)
-      os.rename(os.path.join(output_folder, "result.0.mha"), os.path.join(output_folder, "previous.mha"))
-      sys.exit(1)
-      previous_transformation = os.path.join(output_folder, "TransformParameters.0.txt")
+      os.remove(os.path.join(output_folder, "previous.mha")); time.sleep(1)
+      os.rename(os.path.join(output_folder, "result.0.mha"), os.path.join(output_folder, "previous.mha")); time.sleep(1)
+      shutil.copyfile(os.path.join(output_folder, "TransformParameters.0.txt"), previous_transformation); time.sleep(1)
+      deleteLine(previous_transformation, "InitialTransform"); time.sleep(1)
       output = cmd([elastix, '-f', previous_result_file, '-m', next_file, '-out', output_folder, '-p', parameter_file, '-t0', previous_transformation])
     
     print("      time spent: "+str(round(time.time()-start_time,3)))
-    #print(output)
+    print(output)
     
-    # convert transformed moving file to .tif and give it the name of the input file
-    #print("  converting .mha to .tif")
-    
-    # replace this by a simple file copy!!
-    #convert_from_elastix(file_list[i], output_folder, save_as_max)
-
+    # copy (store) transformed file
+    print("  copying result file")
+    start_time = time.time()
+    shutil.copyfile(os.path.join(output_folder, "result.0.mha"), os.path.join(output_folder, file_list[i]+".mha"))
+    print("      time spent: "+str(round(time.time()-start_time,3)))
     
     # clean up
     IJ.run("Close All", "");
