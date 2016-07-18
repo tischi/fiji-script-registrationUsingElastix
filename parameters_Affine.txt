@@ -43,7 +43,8 @@
 // and need to be chosen careful for each application. See manual.
 (Optimizer "AdaptiveStochasticGradientDescent")
 (Transform "AffineTransform")
-(Metric "AdvancedMattesMutualInformation")
+(Metric "AdvancedMeanSquares") //(Metric "AdvancedMattesMutualInformation")
+
 
 // ***************** Transformation **************************
 
@@ -149,6 +150,6 @@
 
 // The pixel type and format of the resulting deformed moving image
 (ResultImagePixelType "short")
-(ResultImageFormat "mhd")
+(ResultImageFormat "mha")
 
 
