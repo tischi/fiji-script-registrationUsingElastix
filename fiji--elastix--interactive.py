@@ -219,7 +219,7 @@ def scatter_plot(title, x, y, x_lab, y_lab):
   #plot.setLimits(min(x),
   plot.show()
 
-def analyze_transformation_files(files):
+def smooth_transformation_files(files, p):
 
   transformations = []
     
@@ -231,16 +231,78 @@ def analyze_transformation_files(files):
         transformations.append(transformation)
         break
   f.close()
+  
+  for i in range(len(transformations[0])):
+    trafo = [float(t[i]) for t in transformations]
+    scatter_plot('trafo', range(len(trafo)), trafo, 'frame', 't'+str(i))
+    median_trafo = running_median(trafo, p['median_window'])
+    scatter_plot('trafo_median', range(len(trafo)),  median_trafo, 'frame', 't'+str(i))
+    for j in range(len(trafo)):
+      transformations[j][i] = median_trafo[j]
 
-  for loop.//
-  trafo = [float(t[0]) for t in transformations]
-  scatter_plot('trafo', range(len(trafo)), trafo, 'frame', 't0')
+  for i, fn in enumerate(files):
+    transformation_line = " ".join('%.10f' % x for x  in transformations[i])
+    transformation_line = '(TransformParameters '+transformation_line+')\n'
+    changeLine(fn, '(TransformParameters', transformation_line)
+    
+  return(1)
   
-  trafo = [float(t[1]) for t in transformations]
-  scatter_plot('trafo', range(len(trafo)), trafo, 'value', 'frame')
-  
-  print(transformations)
-   
+
+#
+# running median: from http://code.activestate.com/recipes/578480-running-median-mean-and-mode/
+#
+
+from collections import deque
+from bisect import insort, bisect_left
+from itertools import islice
+
+def running_median(seq, M):
+    """
+     Purpose: Find the median for the points in a sliding window (odd number in size) 
+              as it is moved from left to right by one point at a time.
+      Inputs:
+            seq -- list containing items for which a running median (in a sliding window) 
+                   is to be calculated
+              M -- number of items in window (window size) -- must be an integer > 1
+      Otputs:
+         medians -- list of medians with size N - M + 1
+       Note:
+         1. The median of a finite list of numbers is the "center" value when this list
+            is sorted in ascending order. 
+         2. If M is an even number the two elements in the window that
+            are close to the center are averaged to give the median (this
+            is not by definition)
+    """   
+    seq = iter(seq)
+    s = []   
+    m = M // 2
+
+    # Set up list s (to be sorted) and load deque with first window of seq
+    s = [item for item in islice(seq,M)]    
+    d = deque(s)
+
+    # Simple lambda function to handle even/odd window sizes    
+    median = lambda : s[m] if bool(M&1) else (s[m-1]+s[m])*0.5
+
+    # Sort it in increasing order and extract the median ("center" of the sorted window)
+    s.sort()    
+    medians = [median()]   
+
+    # Now slide the window by one point to the right for each new position (each pass through 
+    # the loop). Stop when the item in the right end of the deque contains the last item in seq
+    for item in seq:
+        old = d.popleft()          # pop oldest from left
+        d.append(item)             # push newest in from right
+        del s[bisect_left(s, old)] # locate insertion point and then remove old 
+        insort(s, item)            # insert newest such that new sort is not required        
+        medians.append(median())  
+
+    # popluate boundary values (added by Tischi)
+    for i in range(int(M/2)):
+      medians.insert(0, medians[0])
+      medians.append(medians[len(medians)-1])
+    
+    return medians
 
 def elastix(fixed_file, moving_file, output_folder, p, init_with_previous_trafo = 0):
   print("  running elastix:")
@@ -284,7 +346,7 @@ def copy_file(src, dst):
 # Main code
 #
 
-def analyze(iReference, iDataSet, tbModel, p, output_folder):
+def compute_transformations(iReference, iDataSet, tbModel, p, output_folder):
   
   #
   # INIT
@@ -301,39 +363,35 @@ def analyze(iReference, iDataSet, tbModel, p, output_folder):
   tbModel.setFileAbsolutePath(tbModel.getFileAbsolutePathString(iReference, "Input_"+p['ch_ref'], "IMG"), iDataSet, "Reference", "IMG")
   
   #
-  # find transformation and transform REFERENCE channel
+  # find transformation
   #
   
-  # find transformation and transform
   fixed_file = tbModel.getFileAbsolutePathString(iReference, "Input_"+p["ch_ref"], "IMG")
   moving_file = tbModel.getFileAbsolutePathString(iDataSet, "Input_"+p["ch_ref"], "IMG")
-  
   elastix(fixed_file, moving_file, output_folder, p) 
   
-  # store transformed file and transformation matrix
+  # store transformation matrix
   moving_filename = tbModel.getFileName(iDataSet, "Input_"+p["ch_ref"], "IMG")+"--transformed.mha"
-  copy_file(os.path.join(output_folder, "result.0.mha"), os.path.join(output_folder, moving_filename))
-  tbModel.setFileAbsolutePath(output_folder, moving_filename, iDataSet, "Transformed_"+p["ch_ref"], "IMG")
   copy_file(os.path.join(output_folder, "TransformParameters.0.txt"), os.path.join(output_folder, "TransformParameters.0-"+str(iDataSet).zfill(3)+".txt"))
-  
+
+
+def apply_transformation(iDataSet, tbModel, p, output_folder):
 
   #
-  # apply transfomation to OTHER channel(s)
+  # apply transfomations to all channel(s)
   #
   
   for ch in p["channels"]:
-    if not ch==p["ch_ref"]: 
-      transformation_file = os.path.join(output_folder, "TransformParameters.0.txt")
-      moving_file = tbModel.getFileAbsolutePathString(iDataSet, "Input_"+ch, "IMG")
-      transformix(moving_file, output_folder, p, transformation_file) 
+    transformation_file = os.path.join(output_folder, "TransformParameters.0-"+str(iDataSet).zfill(3)+".txt")
+    moving_file = tbModel.getFileAbsolutePathString(iDataSet, "Input_"+ch, "IMG")
+    transformix(moving_file, output_folder, p, transformation_file) 
       
-      # store transformed file
-      moving_filename = tbModel.getFileName(iDataSet, "Input_"+ch, "IMG")+"--transformed.mha"
-      copy_file(os.path.join(output_folder, "result.mha"), os.path.join(output_folder, moving_filename))
-      tbModel.setFileAbsolutePath(output_folder, moving_filename, iDataSet, "Transformed_"+ch, "IMG")
+    # store transformed file
+    moving_filename = tbModel.getFileName(iDataSet, "Input_"+ch, "IMG")+"--transformed.mha"
+    copy_file(os.path.join(output_folder, "result.mha"), os.path.join(output_folder, moving_filename))
+    tbModel.setFileAbsolutePath(output_folder, moving_filename, iDataSet, "Transformed_"+ch, "IMG")
     
  
-
 #
 # ANALYZE INPUT FILES
 #
@@ -408,14 +466,7 @@ if __name__ == '__main__':
   output_folder = input_folder[:-1]+"--fiji"
   if not os.path.isdir(output_folder):
     os.mkdir(output_folder)
-
-  #
-  # Test
-  #
-  files = get_file_list(output_folder, 'TransformParameters.0-(.*)')
-  analyze_transformation_files(files)
-  ddd
-  
+    
   #
   # DETERMINE INPUT FILES
   #
@@ -431,6 +482,7 @@ if __name__ == '__main__':
   
   # registration method
   p["to_be_analyzed"] = "all"
+  p['median_window'] = 3
   p["elastix_binary_file"] = "C:\\Program Files\\elastix_v4.8\\elastix"
   p["transformix_binary_file"] = "C:\\Program Files\\elastix_v4.8\\transformix"
   p["elastix_parameter_file"] = "C:\\Users\\tischer\\Desktop\\parameters_Affine.txt"
@@ -449,10 +501,9 @@ if __name__ == '__main__':
 
   p["channels"] = p["channels"].split(",")
   p["image_pyramid_schedule"] = p["image_pyramid_schedule"].split(",")
-  
-  
+    
   #
-  # INIT AND SHOW INTERACTIVE TABLE
+  # INIT INTERACTIVE TABLE
   #
   
   tbModel.addFileColumns('Reference','IMG')
@@ -493,17 +544,33 @@ if __name__ == '__main__':
   changeLine(p["elastix_parameter_file"], "NumberOfResolutions", "(NumberOfResolutions "+str(p["number_of_resolutions"])+")")  
   changeLine(p["elastix_parameter_file"], "ImagePyramidSchedule", "(ImagePyramidSchedule "+str(p["image_pyramid_schedule"])+")")  
 
-  # loop through files  
+
+  #
+  # Compute transformations  
+  #
   n_files = tbModel.getRowCount()
-  if not p["to_be_analyzed"]=="all":
-    close_all_image_windows()
-    analyze(p["reference_id"], int(p["to_be_analyzed"])-1, tbModel, p, output_folder)
-  else:  
-    for i in range(p["reference_id"], n_files, 1):
-      analyze(p["reference_id"], i, tbModel, p, output_folder)    
-    for i in range(p["reference_id"]-1, -1, -1):
-      analyze(p["reference_id"], i, tbModel, p, output_folder)    
+  for i in range(n_files):
+    compute_transformations(p["reference_id"], i, tbModel, p, output_folder)    
+
+  #
+  # Smooth transformations over time
+  #
+  if p['median_window']>1:
+    files = get_file_list(output_folder, 'TransformParameters.0-(.*)')
+    smooth_transformation_files(files, p)
+  
+  #
+  # Todo; this does not always make sense!
+  #
+  #
+  
+  # Apply (smoothed) transformations
+  #
+  for i in range(n_files):
+    apply_transformation(i, tbModel, p, output_folder)    
+
   print("done!")
+
 
   close_all_image_windows()
   
