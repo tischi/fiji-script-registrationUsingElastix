@@ -139,11 +139,11 @@ def convert_for_elastix(input_file, output_file):
   start_time = time.time()
   imp = IJ.openImage(input_file)
   IJ.run(imp, "Properties...", "unit=pixel pixel_width=1.0000 pixel_height=1.0000 voxel_depth=1.0000")
-  print("        time spent: "+str(round(time.time()-start_time,3)))
+  print("        time elapsed: "+str(round(time.time()-start_time,3)))
   print("      writing mha")
   start_time = time.time()
   IJ.run(imp, "MHD/MHA ...", "save="+output_file);
-  print("        time spent: "+str(round(time.time()-start_time,3)))
+  print("        time elapsed: "+str(round(time.time()-start_time,3)))
   return output_file
 
 def deleteLine(fn, txt):
@@ -172,8 +172,6 @@ def changeLine(fn, txt_id, txt):
   f.writelines(output)
   f.close()
 
-  
-  
 
 # - the conversion to unsigned int is ugly!
 # - weird behavior of IJ.openImage: it shows the image but does not put anything into the imp
@@ -182,7 +180,7 @@ def convert_from_elastix(original_filename, output_folder, save_as_max):
   print("    reading mha")
   start_time = time.time()
   IJ.openImage(os.path.join(output_folder,"result.0.mha"))
-  print("      time spent: "+str(round(time.time()-start_time,3)))
+  print("      time elapsed: "+str(round(time.time()-start_time,3)))
   imp = IJ.getImage()
   IJ.run(imp, "32-bit", "");
   IJ.setMinAndMax(0, 65535);
@@ -191,7 +189,7 @@ def convert_from_elastix(original_filename, output_folder, save_as_max):
   print("    writing tif")
   start_time = time.time()
   IJ.saveAs(imp, "Tiff", output_file)
-  print("      time spent: "+str(round(time.time()-start_time,3)))
+  print("      time elapsed: "+str(round(time.time()-start_time,3)))
   # optional to save maximum projections
   if(save_as_max):
     if(imp.getStackSize()>1):
@@ -199,17 +197,30 @@ def convert_from_elastix(original_filename, output_folder, save_as_max):
       start_time = time.time()
       IJ.run(imp, "Z Project...", "projection=[Max Intensity]")
       IJ.saveAs(IJ.getImage(), "Tiff", output_file+"--z-max.tif")
-      print("      time spent: "+str(round(time.time()-start_time,3)))
+      print("      time elapsed: "+str(round(time.time()-start_time,3)))
   return output_file
 
 
-def transform(fixed_file, moving_file, output_folder, p, init_with_previous_trafo = 0):
+
+def transformix(moving_file, output_folder, p, transformation_file):
+  print("  running transformix:")
+  print("    transformation file: "+transformation_file)      
+  print("    moving file: "+moving_file)      
+  start_time = time.time()   
+  output = cmd([p["transformix_binary_file"], '-in', moving_file, '-out', output_folder, '-tp',  transformation_file])
+  print("    time elapsed: "+str(round(time.time()-start_time,3)))
+  
+  return(output)     
+
+
+def elastix(fixed_file, moving_file, output_folder, p, init_with_previous_trafo = 0):
   print("  running elastix:")
-  print("    fixed file:  "+fixed_file)
+  print("    fixed file: "+fixed_file)
   print("    moving file: "+moving_file)      
   #moving_file = convert_for_elastix(moving_file, os.path.join(output_folder,"moving.mha"))    
      
-  if init_with_previous_trafo:
+  #if init_with_previous_trafo:
+  if 0:
      '''
      fixed_file = os.path.join(output_folder, "fixed.mha") 
      os.remove(fixed_file); time.sleep(1)
@@ -223,13 +234,13 @@ def transform(fixed_file, moving_file, output_folder, p, init_with_previous_traf
      deleteLine(previous_transformation, "InitialTransform"); time.sleep(1)
      start_time = time.time()   
      output = cmd([p["elastix_binary_file"], '-f', fixed_file, '-m', moving_file, '-out', output_folder, '-p',  p["elastix_parameter_file"] , '-t0', previous_transformation])
-     print("    time spent: "+str(round(time.time()-start_time,3)))
+     print("    time elapsed: "+str(round(time.time()-start_time,3)))
   else:
     # generate fixed file
     #fixed_file = convert_for_elastix(fixed_file, os.path.join(output_folder,"fixed.mha"))   
     start_time = time.time()   
     output = cmd([p["elastix_binary_file"], '-f', fixed_file, '-m', moving_file, '-out', output_folder, '-p',  p["elastix_parameter_file"] ])
-    print("    time spent: "+str(round(time.time()-start_time,3)))
+    print("    time elapsed: "+str(round(time.time()-start_time,3)))
   
   return(output)     
   
@@ -237,7 +248,7 @@ def copy_file(src, dst):
   print("  copying file: "+src)
   start_time = time.time()
   shutil.copyfile(src, dst)
-  print("    time spent: "+str(round(time.time()-start_time,3)))
+  print("    time elapsed: "+str(round(time.time()-start_time,3)))
 
 
 #
@@ -255,80 +266,54 @@ def analyze(iReference, iDataSet, tbModel, p, output_folder):
   #
   # ANALYSE
   #
+
   
   # store path to reference file in table
-  reference_file = tbModel.getFileAbsolutePathString(iReference, "RAW", "IMG")
-  tbModel.setFileAbsolutePath(reference_file, iDataSet, "Reference", "IMG")
-  fixed_file = tbModel.getFileAbsolutePathString(iReference, "RAW", "IMG")
-  moving_file = tbModel.getFileAbsolutePathString(iDataSet, "RAW", "IMG")
+  tbModel.setFileAbsolutePath(tbModel.getFileAbsolutePathString(iReference, "Input_"+p['ch_ref'], "IMG"), iDataSet, "Reference", "IMG")
   
-  if abs(iReference-iDataSet) == 0: 
-    init_with_previous_trafo = 0 # first transformation
-  else:
-    init_with_previous_trafo = 1 # subsequent transformations
-    
-  transform(fixed_file, moving_file, output_folder, p, init_with_previous_trafo) 
+  #
+  # find transformation and transform REFERENCE channel
+  #
   
-  #fixed_filename = tbModel.getFileName(iReference, "RAW", "IMG")+"--transformed.mha"
-  #copy_file(os.path.join(output_folder, "fixed.mha"), os.path.join(output_folder, fixed_filename) )
-  #tbModel.setFileAbsolutePath(output_folder, fixed_filename, iReference, "Transformed", "IMG")
-  #else:
-  #  #fixed_file = "use_previous_result"
-  #  fixed_file = tbModel.getFileAbsolutePathString(iReference, "RAW", "IMG")
-  #  transform(fixed_file, moving_file, output_folder, p, init_with_previous_trafo = 1)  
+  # find transformation and transform
+  fixed_file = tbModel.getFileAbsolutePathString(iReference, "Input_"+p["ch_ref"], "IMG")
+  moving_file = tbModel.getFileAbsolutePathString(iDataSet, "Input_"+p["ch_ref"], "IMG")
+  
+  elastix(fixed_file, moving_file, output_folder, p) 
   
   # store transformed file
-  moving_filename = tbModel.getFileName(iDataSet, "RAW", "IMG")+"--transformed.mha"
+  moving_filename = tbModel.getFileName(iDataSet, "Input_"+p["ch_ref"], "IMG")+"--transformed.mha"
   copy_file(os.path.join(output_folder, "result.0.mha"), os.path.join(output_folder, moving_filename))
-  tbModel.setFileAbsolutePath(output_folder, moving_filename, iDataSet, "Transformed", "IMG")
-  	   
-  #
-  # SHOW DATA
-  # 
-  
-  #imp.show()
+  tbModel.setFileAbsolutePath(output_folder, moving_filename, iDataSet, "Transformed_"+p["ch_ref"], "IMG")
+
 
   #
-  # SCALING
+  # apply transfomation to OTHER channel(s)
   #
   
-  #IJ.run(imp, "Scale...", "x="+str(p["scale"])+" y="+str(p["scale"])+" z=1.0 interpolation=Bilinear average process create"); 
-  
-  #
-  # CONVERSION
-  #
-  
-  #IJ.run(imp, "8-bit", "");
- 
-  #
-  # CROPPING
-  #
-  
-  #imp.setRoi(392,386,750,762);
-  #IJ.run(imp, "Crop", "");
-
-  
-  #
-  # BACKGROUND SUBTRACTION
-  #
-  
-  # IJ.run(imp, "Subtract...", "value=32768 stack");
-
-  #
-  # REGION SEGMENTATION
-  #
+  for ch in p["channels"]:
+    if not ch==p["ch_ref"]: 
+      transformation_file = os.path.join(output_folder, "TransformParameters.0.txt")
+      moving_file = tbModel.getFileAbsolutePathString(iDataSet, "Input_"+ch, "IMG")
+      transformix(moving_file, output_folder, p, transformation_file) 
+      
+      # store transformed file
+      moving_filename = tbModel.getFileName(iDataSet, "Input_"+ch, "IMG")+"--transformed.mha"
+      copy_file(os.path.join(output_folder, "result.mha"), os.path.join(output_folder, moving_filename))
+      tbModel.setFileAbsolutePath(output_folder, moving_filename, iDataSet, "Transformed_"+ch, "IMG")
+    
  
 
 #
 # ANALYZE INPUT FILES
 #
-def determine_input_files(foldername, tbModel):
+def determine_input_files(foldername):
 
   print("#\n# Determine input files in: "+foldername+"\n#")
   pattern = re.compile('(.*).tif') 
   #pattern = re.compile('(.*)--beats.tif') 
    
-  i = 0
+  files = []
   for root, directories, filenames in os.walk(foldername):
 	for filename in filenames:
 	   print("Checking:", filename)
@@ -337,17 +322,10 @@ def determine_input_files(foldername, tbModel):
 	   match = re.search(pattern, filename)
 	   if (match == None) or (match.group(1) == None):
 	     continue
-	   tbModel.addRow()
-	   tbModel.setFileAbsolutePath(foldername, filename, i, "RAW","IMG")
+	   files.append(os.path.join(foldername, filename))  
 	   print("Accepted:", filename)	   
-	   i += 1
 
-  print("#\n# Files to be analyzed\n#")
-  for i in range(tbModel.getRowCount()):
-    filename = tbModel.getFileName(i, "RAW", "IMG") 
-    print(str(i)+": "+filename)
-  
-  return(tbModel)
+  return(files)
 
 #
 # GET PARAMETERS
@@ -405,10 +383,8 @@ if __name__ == '__main__':
   # DETERMINE INPUT FILES
   #
   tbModel = TableModel(input_folder)
-  tbModel.addFileColumns('RAW','IMG')
-  tbModel = determine_input_files(input_folder, tbModel)
-  
- 
+  files = determine_input_files(input_folder)
+   
   #
   # GET PARAMETERS
   #
@@ -419,58 +395,77 @@ if __name__ == '__main__':
   # registration method
   p["to_be_analyzed"] = "all"
   p["elastix_binary_file"] = "C:\\Program Files\\elastix_v4.8\\elastix"
+  p["transformix_binary_file"] = "C:\\Program Files\\elastix_v4.8\\transformix"
   p["elastix_parameter_file"] = "C:\\Users\\tischer\\Desktop\\parameters_Affine.txt"
-  p["reference_id"] = int(tbModel.getRowCount()/2) 
-  p["strategy"] = "running"
+  p["reference_id"] = 0
   p["save_maximum_projections"] = "Yes"
   p["maximum_number_of_iterations"] = 500
   # determine image size from file and use
   # number_of_resolutions = print(int(math.log(image_size/10,2))
   p["image_pyramid_schedule"] = "32,16,8" 
   p["image_dimensions"] = 2 
-     
-  p = get_parameters(p, tbModel.getRowCount())
+  p["channels"] = "ch0,ch1"
+  p["ch_ref"] = "ch1"
+  
+  p = get_parameters(p, len(files))
   print(p)
+
+  p["channels"] = p["channels"].split(",")
+  p["image_pyramid_schedule"] = p["image_pyramid_schedule"].split(",")
   
   
   #
   # INIT AND SHOW INTERACTIVE TABLE
   #
   
-  tbModel.addFileColumns('Transformed','IMG')
   tbModel.addFileColumns('Reference','IMG')
   
+  for ch in p["channels"]:
+    tbModel.addFileColumns('Input_'+ch,'IMG')
+  
+  for ch in p["channels"]:
+    tbModel.addFileColumns('Transformed_'+ch,'IMG')
+    
+  sorted_files = sorted(files)
+  print("#\n# Files to be analyzed\n#")
+  for ch in p["channels"]:
+    iDataSet = 0
+    for afile in sorted_files:
+      if ch in afile:
+        if ch==p["channels"][0]:
+          tbModel.addRow()
+          print(str(iDataSet)+": "+afile)
+        tbModel.setFileAbsolutePath(afile, iDataSet, "Input_"+ch,"IMG")
+        iDataSet = iDataSet + 1
   
   #
   # ANALYZE
   #
   print("#\n# Analysis\n#")
 
-
-  resolutions = p["image_pyramid_schedule"].split(",")
+  # reformat resolution pyramid layer parameters
   s = ""; 
-  for resolution in resolutions:
+  for resolution in p["image_pyramid_schedule"]:
     for d in range(p["image_dimensions"]): 
       s = s + resolution + " "
-  p["number_of_resolutions"] = len(resolutions)
+  p["number_of_resolutions"] = len(p["image_pyramid_schedule"])
   p["image_pyramid_schedule"] = s
   
   # adapt parameter file
   changeLine(p["elastix_parameter_file"], "MaximumNumberOfIterations", "(MaximumNumberOfIterations "+str(int(p["maximum_number_of_iterations"]))+")")
   changeLine(p["elastix_parameter_file"], "NumberOfResolutions", "(NumberOfResolutions "+str(p["number_of_resolutions"])+")")  
   changeLine(p["elastix_parameter_file"], "ImagePyramidSchedule", "(ImagePyramidSchedule "+str(p["image_pyramid_schedule"])+")")  
-    
-  i_ref = p["reference_id"]
+
+  # loop through files  
   n_files = tbModel.getRowCount()
-  
   if not p["to_be_analyzed"]=="all":
     close_all_image_windows()
-    analyze(i_ref, int(p["to_be_analyzed"])-1, tbModel, p, output_folder)
+    analyze(p["reference_id"], int(p["to_be_analyzed"])-1, tbModel, p, output_folder)
   else:  
-    for i in range(i_ref,n_files,1):
-      analyze(i_ref, i, tbModel, p, output_folder)    
-    for i in range(i_ref-1,-1,-1):
-      analyze(i_ref, i, tbModel, p, output_folder)    
+    for i in range(p["reference_id"], n_files, 1):
+      analyze(p["reference_id"], i, tbModel, p, output_folder)    
+    for i in range(p["reference_id"]-1, -1, -1):
+      analyze(p["reference_id"], i, tbModel, p, output_folder)    
   print("done!")
 
   close_all_image_windows()
