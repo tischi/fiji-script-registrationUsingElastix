@@ -54,6 +54,7 @@ from subprocess import Popen, PIPE
 from ij.process import ImageConverter
 import os, time, shutil, sys, math
 from ij.macro import MacroRunner
+from ij.gui import Plot
 
 from loci.plugins import BF
 from loci.common import Region
@@ -212,6 +213,34 @@ def transformix(moving_file, output_folder, p, transformation_file):
   
   return(output)     
 
+def scatter_plot(title, x, y, x_lab, y_lab):
+  plot = Plot(title, x_lab, y_lab, [], [])
+  plot.addPoints(x, y, Plot.CIRCLE)
+  #plot.setLimits(min(x),
+  plot.show()
+
+def analyze_transformation_files(files):
+
+  transformations = []
+    
+  for fn in files:
+    f = open(fn)
+    for line in f:
+      if '(TransformParameters' in line:
+        transformation = re.findall(r'[-+]?\d+[\.]?\d*', line)
+        transformations.append(transformation)
+        break
+  f.close()
+
+  for loop.//
+  trafo = [float(t[0]) for t in transformations]
+  scatter_plot('trafo', range(len(trafo)), trafo, 'frame', 't0')
+  
+  trafo = [float(t[1]) for t in transformations]
+  scatter_plot('trafo', range(len(trafo)), trafo, 'value', 'frame')
+  
+  print(transformations)
+   
 
 def elastix(fixed_file, moving_file, output_folder, p, init_with_previous_trafo = 0):
   print("  running elastix:")
@@ -281,11 +310,12 @@ def analyze(iReference, iDataSet, tbModel, p, output_folder):
   
   elastix(fixed_file, moving_file, output_folder, p) 
   
-  # store transformed file
+  # store transformed file and transformation matrix
   moving_filename = tbModel.getFileName(iDataSet, "Input_"+p["ch_ref"], "IMG")+"--transformed.mha"
   copy_file(os.path.join(output_folder, "result.0.mha"), os.path.join(output_folder, moving_filename))
   tbModel.setFileAbsolutePath(output_folder, moving_filename, iDataSet, "Transformed_"+p["ch_ref"], "IMG")
-
+  copy_file(os.path.join(output_folder, "TransformParameters.0.txt"), os.path.join(output_folder, "TransformParameters.0-"+str(iDataSet).zfill(3)+".txt"))
+  
 
   #
   # apply transfomation to OTHER channel(s)
@@ -307,11 +337,11 @@ def analyze(iReference, iDataSet, tbModel, p, output_folder):
 #
 # ANALYZE INPUT FILES
 #
-def determine_input_files(foldername):
 
-  print("#\n# Determine input files in: "+foldername+"\n#")
-  pattern = re.compile('(.*).tif') 
-  #pattern = re.compile('(.*)--beats.tif') 
+def get_file_list(foldername, reg_exp):
+
+  print("#\n# Finding files in: "+foldername+"\n#")
+  pattern = re.compile(reg_exp)
    
   files = []
   for root, directories, filenames in os.walk(foldername):
@@ -325,7 +355,7 @@ def determine_input_files(foldername):
 	   files.append(os.path.join(foldername, filename))  
 	   print("Accepted:", filename)	   
 
-  return(files)
+  return(sorted(files))
 
 #
 # GET PARAMETERS
@@ -380,11 +410,18 @@ if __name__ == '__main__':
     os.mkdir(output_folder)
 
   #
+  # Test
+  #
+  files = get_file_list(output_folder, 'TransformParameters.0-(.*)')
+  analyze_transformation_files(files)
+  ddd
+  
+  #
   # DETERMINE INPUT FILES
   #
   tbModel = TableModel(input_folder)
-  files = determine_input_files(input_folder)
-   
+  files = get_file_list(input_folder, '(.*).tif')
+
   #
   # GET PARAMETERS
   #
