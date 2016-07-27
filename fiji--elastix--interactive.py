@@ -11,32 +11,7 @@
 #
 # Output:
 #
-# General Todo:
-# - write load and save functions giving: MB, time, MB/time
 #
-# Elastix Todo:
-# - use masks
-# - use last trafo as input for next: -t0 TransformParameters.0.txt
-# - when it is 8-bit input save as 8-bit input (check the unsigned issue)
-# - option to find trafo in downsampled and apply to full-size
-# - tmp storage on VM that is automatically deleted upon log-off?
-# - if key contains file open file selection box
-# - non-zero background is an issue I think; check manual; maybe not....
-#
-# Structure for batch analysis:
-#  
-# - main 
-#  - parameters = get_analysis_parameters()
-#  - folder = get_folder()
-#  - table = init_results_table()
-#  - get_data_info(folder, table) 
-#  - batch_analyze(parameters, table) 
-#    - for row in table 
-#       - analyze(row, table, parameters)
-#         - imp = load_imp(table, row)
-#         - write results to table(row)
-#         - write segmentation overlay images (use from table(row))
-
 
 
 from ij.io import OpenDialog
@@ -257,22 +232,7 @@ from bisect import insort, bisect_left
 from itertools import islice
 
 def running_median(seq, M):
-    """
-     Purpose: Find the median for the points in a sliding window (odd number in size) 
-              as it is moved from left to right by one point at a time.
-      Inputs:
-            seq -- list containing items for which a running median (in a sliding window) 
-                   is to be calculated
-              M -- number of items in window (window size) -- must be an integer > 1
-      Otputs:
-         medians -- list of medians with size N - M + 1
-       Note:
-         1. The median of a finite list of numbers is the "center" value when this list
-            is sorted in ascending order. 
-         2. If M is an even number the two elements in the window that
-            are close to the center are averaged to give the median (this
-            is not by definition)
-    """   
+    
     seq = iter(seq)
     s = []   
     m = M // 2
@@ -400,7 +360,8 @@ def apply_transformation(iDataSet, tbModel, p, output_folder):
   
   for ch in p["channels"]:
     moving_file = tbModel.getFileAbsolutePathString(iDataSet, "Input_"+ch, "IMG")
-    transformation_file = os.path.join(output_folder, "transformation-"+str(moving_file.split('\\')[-1]+".txt"))
+    moving_ref_file = tbModel.getFileAbsolutePathString(iDataSet, "Input_"+p["ch_ref"], "IMG")    
+    transformation_file = os.path.join(output_folder, "transformation-"+str(moving_ref_file.split('\\')[-1]+".txt"))
     transformix(moving_file, output_folder, p, transformation_file) 
       
     # store transformed file
@@ -504,15 +465,15 @@ if __name__ == '__main__':
   p["transformix_binary_file"] = "C:\\Program Files\\elastix_v4.8\\transformix"
   p["mask_file"] = "" #'Z:\\HenningFalk\\Tischi_Reg\\mask.tif'
   p["elastix_parameter_file"] = "C:\\Users\\tischer\\Desktop\\parameters_Affine.txt"
-  p["reference_id"] = 73
+  p["reference_id"] = 0
   p["save_maximum_projections"] = "Yes"
-  p["maximum_number_of_iterations"] = 1000
+  p["maximum_number_of_iterations"] = 300
   # determine image size from file and use
   # number_of_resolutions = print(int(math.log(image_size/10,2))
-  p["image_pyramid_schedule"] = "16,8,4,2" 
+  p["image_pyramid_schedule"] = "16,4" 
   p["image_dimensions"] = 2 
-  p["channels"] = "affine"
-  p["ch_ref"] = "affine"
+  p["channels"] = "ch1"
+  p["ch_ref"] = "ch1"
   p["image_background_value"] = 307
   p["number_of_spatial_samples"] = 3000
   
@@ -567,7 +528,7 @@ if __name__ == '__main__':
   changeLine(p["elastix_parameter_file"], "NumberOfResolutions", "(NumberOfResolutions "+str(p["number_of_resolutions"])+")")  
   changeLine(p["elastix_parameter_file"], "ImagePyramidSchedule", "(ImagePyramidSchedule "+str(p["image_pyramid_schedule"])+")")  
   changeLine(p["elastix_parameter_file"], "DefaultPixelValue", "(DefaultPixelValue "+str(p["image_background_value"])+")")  
-  changeLine(p["elastix_parameter_file"], "NumberOfSpatialSamples", "(DefaultPixelValue "+str(p["number_of_spatial_samples"])+")")  
+  changeLine(p["elastix_parameter_file"], "NumberOfSpatialSamples", "(NumberOfSpatialSamples "+str(p["number_of_spatial_samples"])+")")  
 
 
   #
