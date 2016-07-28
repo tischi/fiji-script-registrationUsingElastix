@@ -2,15 +2,21 @@
 
 This repository contains information about registration algorithms (in Fiji). 
 
-## fiji--elastix.py
+## fiji--elastix--interactive.py
 
 Fiji script to run elastix registration.
 Fiji handles the data and runs elastix via system calls.
 
-### requirements
+### installation
 
 - fiji: https://fiji.sc/
 - elastix (tested with windows binary): http://elastix.isi.uu.nl/download.php
+- download and extract this repository: https://github.com/tischi/fiji-registration/archive/master.zip
+  - move AutoMic_JavaTools-1.1.0-SNAPSHOT-19072016.jar to Fiji's plugin folder
+
+### running
+
+- drag fiji--elastix--interactive.py onto Fiji and [Run] at bottom of the script editor
 
 ## other things to try
 
