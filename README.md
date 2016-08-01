@@ -9,37 +9,16 @@ Fiji handles the data and runs elastix via system calls.
 
 ### installation
 
-- fiji: https://fiji.sc/
-- elastix (tested with windows binary): http://elastix.isi.uu.nl/download.php
+- install fiji: https://fiji.sc/
+- Windows
+  - install elastix (tested with windows binary): http://elastix.isi.uu.nl/download.php
+  - install Visual C++: http://www.microsoft.com/en-us/download/details.aspx?id=30679
+    - see also here: http://elastix.isi.uu.nl/FAQ.php
 - download and extract this repository: https://github.com/tischi/fiji-registration/archive/master.zip
-  - move AutoMic_JavaTools-1.1.0-SNAPSHOT-19072016.jar to Fiji's plugin folder
+  - move __AutoMic_JavaTools-1.1.0-SNAPSHOT-19072016.jar__ to Fiji's plugin folder
 
 ### running
 
-- drag fiji--elastix--interactive.py onto Fiji and [Run] at bottom of the script editor
-
-## other things to try
-
-### x,y,z maximum projections with stackreg and then 3-D with TransformJ
-
-- would have to write code
-
-### Perrine's java code
-
-- try to get it running
-
-### Amira
-
-- ???
-
-### Icy with ec-CLEM Plugin
-
-- only 2D or with manual annotation
-
-### Imglib2
-
-- Saalfeld: "Tobias implemented the basic Thenevaz approach for full affines some
-years ago for ImgLib2. It's in one of the advanced tutorials and works
-in an arbitrary number of dimensions. Images need to be approximately
-registered."
-- find tutorial
+- drag __fiji--elastix--interactive.py__ onto Fiji and [Run]
+- select a file in the __/examples/2d-affine__ folder 
+  - it should work with default settings
