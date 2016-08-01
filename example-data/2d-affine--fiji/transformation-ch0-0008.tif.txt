@@ -1,7 +1,7 @@
 (Transform "AffineTransform")
 (NumberOfParameters 6)
-(TransformParameters 1.031399 0.069118 -0.069847 1.032383 -5.091923 4.220939)
-(InitialTransformParametersFileName "C:\Users\tischer\Downloads\fiji-registration-master\fiji-registration-master\example-data\2d-affine--fiji\transformation-ch0-0001.tif.txt")
+(TransformParameters 1.045709 0.084380 -0.084090 1.043263 -11.445764 1.562020)
+(InitialTransformParametersFileName "C:\Users\tischer\Downloads\fiji-registration-master\fiji-registration-master\example-data\2d-affine--fiji\transformation-ch0-0009.tif.txt")
 (HowToCombineTransforms "Compose")
 
 // Image specific
@@ -17,7 +17,7 @@
 (UseDirectionCosines "true")
 
 // AdvancedAffineTransform specific
-(CenterOfRotationPoint 175.8935980000 280.4687130000)
+(CenterOfRotationPoint 243.8800210000 256.1433970000)
 
 // ResampleInterpolator specific
 (ResampleInterpolator "FinalBSplineInterpolator")

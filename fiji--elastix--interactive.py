@@ -459,23 +459,23 @@ if __name__ == '__main__':
   p = dict()
   
   # registration method
-  p["to_be_analyzed"] = "all"
-  p['median_window'] = 0
+  #p["to_be_analyzed"] = "all"
+  p["channels"] = "ch0,ch1"
+  p["ch_ref"] = "ch0"
+  p["image_background_value"] = 25
   p["elastix_binary_file"] = "C:\\Program Files\\elastix_v4.8\\elastix"
+  p["elastix_parameter_file"] = "C:\\Users\\tischer\\Downloads\\fiji-registration-master\\fiji-registration-master\\parameters_Affine.txt"
   p["transformix_binary_file"] = "C:\\Program Files\\elastix_v4.8\\transformix"
   p["mask_file"] = "" #'Z:\\HenningFalk\\Tischi_Reg\\mask.tif'
-  p["elastix_parameter_file"] = "C:\\Users\\tischer\\Desktop\\parameters_Affine.txt"
-  p["reference_id"] = 0
-  p["save_maximum_projections"] = "Yes"
+  #p["reference_id"] = 0
+  #p["save_maximum_projections"] = "Yes"
   p["maximum_number_of_iterations"] = 300
   # determine image size from file and use
   # number_of_resolutions = print(int(math.log(image_size/10,2))
   p["image_pyramid_schedule"] = "16,4" 
   p["image_dimensions"] = 2 
-  p["channels"] = "ch1"
-  p["ch_ref"] = "ch1"
-  p["image_background_value"] = 307
   p["number_of_spatial_samples"] = 3000
+  p['median_window'] = 0
   
   p = get_parameters(p, len(files))
   print(p)
