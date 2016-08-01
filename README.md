@@ -17,9 +17,9 @@ This repository conatins a Fiji script to run elastix registration algorithms; F
 ### run it
 
 - drag __fiji--elastix--interactive.py__ onto Fiji and [Run]
-- select a file in the __/examples/2d-affine__ folder 
+- select a file in the __.../examples/2d-affine__ folder 
   - it should work with default settings
-  - the results will appear in an automatically created output folder named __/examples/2d-affine--fiji__
+  - the results will appear in an automatically created output folder named __.../examples/2d-affine--fiji__
 
 ### learn more
 
