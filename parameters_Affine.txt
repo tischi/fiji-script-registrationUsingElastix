@@ -1,6 +1,11 @@
 // Example parameter file for affine registration
 // C-style comments: //
 
+(WriteTransformParametersEachIteration "false")
+(WriteTransformParametersEachResolution "false")
+(WriteResultImageAfterEachResolution "false")
+(WritePyramidImagesAfterEachResolution "false")
+
 // The internal pixel type, used for internal computations
 // Leave to float in general. 
 // NB: this is not the type of the input images! The pixel 
@@ -88,7 +93,7 @@
 // By default, the images are downsampled by a factor of 2
 // compared to the next resolution.
 // So, in 2D, with 4 resolutions, the following schedule is used:
-(ImagePyramidSchedule 16 16 4 4 )
+(ImagePyramidSchedule 16 16 16 4 4 4 )
 
 // Make sure that the number of elements equals the number
 // of resolutions times the image dimension.
