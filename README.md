@@ -24,3 +24,8 @@ This repository conatins a Fiji script to run elastix registration algorithms; F
 ### learn more
 
 - elastix manual: http://elastix.isi.uu.nl/download/elastix_manual_v4.8.pdf
+
+### usage notes and tips
+
+- at the moment the last file (in terms of file-name sorting) automatically is the reference
+- using a Mask file is usually improving the results; one good way to make one is to blur and threshold the reference image
