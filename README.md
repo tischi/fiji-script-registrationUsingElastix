@@ -28,4 +28,4 @@ This repository conatins a Fiji script to run elastix registration algorithms; F
 ### usage notes and tips
 
 - at the moment the last file (in terms of file-name sorting) automatically is the reference
-- using a Mask file is usually improving the results; one good way to make one is to blur and threshold the reference image
+- using a Mask file is usually improving the results; one good way to make one is to blur and threshold the reference image; the values in the mask image need to be 0 and 1(not 255!)
