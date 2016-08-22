@@ -299,10 +299,10 @@ def elastix(fixed_file, moving_file, output_folder, p, init_with_trafo = ""):
   return(output)     
   
 def copy_file(src, dst):
-  print("  copying file: "+src)
-  start_time = time.time()
+  #print("  copying file: "+src)
+  #start_time = time.time()
   shutil.copyfile(src, dst)
-  print("    time elapsed: "+str(round(time.time()-start_time,3)))
+  #print("    time elapsed: "+str(round(time.time()-start_time,3)))
 
 
 #
