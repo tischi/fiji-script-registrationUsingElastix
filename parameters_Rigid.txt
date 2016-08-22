@@ -1,6 +1,12 @@
 // Example parameter file for rotation registration
 // C-style comments: //
 
+(WriteTransformParametersEachIteration "false")
+(WriteTransformParametersEachResolution "false")
+(WriteResultImageAfterEachResolution "false")
+(WritePyramidImagesAfterEachResolution "false")
+
+
 // The internal pixel type, used for internal computations
 // Leave to float in general. 
 // NB: this is not the type of the input images! The pixel 
@@ -28,8 +34,8 @@
 
 // The following components should usually be left as they are:
 (Registration "MultiResolutionRegistration")
-(Interpolator "BSplineInterpolator")
-(ResampleInterpolator "FinalBSplineInterpolator")
+(Interpolator "LinearInterpolator") //(Interpolator "BSplineInterpolator")
+(ResampleInterpolator "FinalLinearInterpolator") //(ResampleInterpolator "FinalBSplineInterpolator")
 (Resampler "DefaultResampler")
 
 // These may be changed to Fixed/MovingSmoothingImagePyramid.
@@ -43,7 +49,8 @@
 // and need to be chosen careful for each application. See manual.
 (Optimizer "AdaptiveStochasticGradientDescent")
 (Transform "EulerTransform")
-(Metric "AdvancedMattesMutualInformation")
+//(Metric "AdvancedMattesMutualInformation")
+(Metric "AdvancedMeanSquares")
 
 // ***************** Transformation **************************
 
@@ -80,17 +87,14 @@
 // The number of resolutions. 1 Is only enough if the expected
 // deformations are small. 3 or 4 mostly works fine. For large
 // images and large deformations, 5 or 6 may even be useful.
-(NumberOfResolutions 4)
+(NumberOfResolutions 2)
 
 // The downsampling/blurring factors for the image pyramids.
 // By default, the images are downsampled by a factor of 2
 // compared to the next resolution.
 // So, in 2D, with 4 resolutions, the following schedule is used:
-//(ImagePyramidSchedule 8 8  4 4  2 2  1 1 )
-// And in 3D:
-//(ImagePyramidSchedule 8 8 8  4 4 4  2 2 2  1 1 1 )
-// You can specify any schedule, for example:
-//(ImagePyramidSchedule 4 4  4 3  2 1  1 1 )
+(ImagePyramidSchedule 16 16 4 4 )
+
 // Make sure that the number of elements equals the number
 // of resolutions times the image dimension.
 
@@ -99,7 +103,7 @@
 // Maximum number of iterations in each resolution level:
 // 200-500 works usually fine for rigid registration.
 // For more robustness, you may increase this to 1000-2000.
-(MaximumNumberOfIterations 250)
+(MaximumNumberOfIterations 300)
 
 // The step size of the optimizer, in mm. By default the voxel size is used.
 // which usually works well. In case of unusual high-resolution images
@@ -114,7 +118,7 @@
 // With an AdaptiveStochasticGradientDescent optimizer,
 // in combination with the two options below, around 2000
 // samples may already suffice.
-(NumberOfSpatialSamples 2048)
+(NumberOfSpatialSamples 2000)
 
 // Refresh these spatial samples in every iteration, and select
 // them randomly. See the manual for information on other sampling
@@ -139,7 +143,7 @@
 (FinalBSplineInterpolationOrder 3)
 
 //Default pixel value for pixels that come from outside the picture:
-(DefaultPixelValue 0)
+(DefaultPixelValue 127)
 
 // Choose whether to generate the deformed moving image.
 // You can save some time by setting this to false, if you are
@@ -149,6 +153,6 @@
 
 // The pixel type and format of the resulting deformed moving image
 (ResultImagePixelType "short")
-(ResultImageFormat "mhd")
+(ResultImageFormat "mha")
 
 

@@ -33,8 +33,8 @@
 
 // The following components should usually be left as they are:
 (Registration "MultiResolutionRegistration")
-(Interpolator "BSplineInterpolator")
-(ResampleInterpolator "FinalBSplineInterpolator")
+(Interpolator "LinearInterpolator")
+(ResampleInterpolator "FinalLinearInterpolator")
 (Resampler "DefaultResampler")
 
 // These may be changed to Fixed/MovingSmoothingImagePyramid.
@@ -93,7 +93,7 @@
 // By default, the images are downsampled by a factor of 2
 // compared to the next resolution.
 // So, in 2D, with 4 resolutions, the following schedule is used:
-(ImagePyramidSchedule 16 16 16 4 4 4 )
+(ImagePyramidSchedule 16 16 4 4 )
 
 // Make sure that the number of elements equals the number
 // of resolutions times the image dimension.
@@ -143,7 +143,7 @@
 (FinalBSplineInterpolationOrder 3)
 
 //Default pixel value for pixels that come from outside the picture:
-(DefaultPixelValue 25)
+(DefaultPixelValue 20)
 
 // Choose whether to generate the deformed moving image.
 // You can save some time by setting this to false, if you are
