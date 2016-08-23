@@ -306,7 +306,57 @@ def copy_file(src, dst):
 
 
 #
-# Main code
+# Make parameter file
+#
+
+def make_parameter_file(p):
+
+  script_file = file(p["elastix_parameter_file"], "w")
+
+  txt = [
+  '(Transform "'+p['transformation']+'")',
+  '(NumberOfResolutions '+str(p["number_of_resolutions"])+')',
+  '(ImagePyramidSchedule '+str(p["image_pyramid_schedule"])+')',
+  '(MaximumNumberOfIterations '+str(int(p["maximum_number_of_iterations"]))+')',
+  '(NumberOfSpatialSamples '+str(p["number_of_spatial_samples"])+')',
+  '(DefaultPixelValue '+str(p["image_background_value"])+')',
+  '(WriteTransformParametersEachIteration "false")',
+  '(WriteTransformParametersEachResolution "false")',
+  '(WriteResultImageAfterEachResolution "false")',
+  '(WritePyramidImagesAfterEachResolution "false")',
+  '(FixedInternalImagePixelType "float")',
+  '(MovingInternalImagePixelType "float")',
+  '(UseDirectionCosines "false")', # ?
+  '(Registration "MultiResolutionRegistration")',
+  '(Interpolator "LinearInterpolator")',
+  '(ResampleInterpolator "FinalLinearInterpolator")', # Could be BSpline
+  '(Resampler "DefaultResampler")',
+  '(FixedImagePyramid "FixedRecursiveImagePyramid")', # check manual
+  '(MovingImagePyramid "MovingRecursiveImagePyramid")', # check manual
+  '(Optimizer "AdaptiveStochasticGradientDescent")',
+  '(Metric "AdvancedMeanSquares")',
+  '(AutomaticScalesEstimation "true")',
+  '(AutomaticTransformInitialization "false")',  # better false as this might fail
+  '(HowToCombineTransforms "Compose")',
+  '(NumberOfHistogramBins 32)',
+  '(ErodeMask "false")',
+  '(NewSamplesEveryIteration "true")',
+  '(ImageSampler "Random")',
+  '(BSplineInterpolationOrder 1)', 
+  '(FinalBSplineInterpolationOrder 3)',
+  '(WriteResultImage "true")',
+  '(ResultImagePixelType "short")', # adapt this!
+  '(ResultImageFormat "mha")' # why not tif?
+  ]
+  txt = '\n'.join(txt)
+  txt = txt + '\n'
+  print(txt)
+  script_file.write(txt)
+  script_file.close()
+
+
+#
+# Transformation
 #
 
 def compute_transformations(iReference, iDataSet, tbModel, p, output_folder, init_with_trafo, previous_transformed_image):
@@ -321,7 +371,6 @@ def compute_transformations(iReference, iDataSet, tbModel, p, output_folder, ini
   # ANALYSE
   #
 
-  
   # store path to reference file in table
   tbModel.setFileAbsolutePath(tbModel.getFileAbsolutePathString(iReference, "Input_"+p['ch_ref'], "IMG"), iDataSet, "Reference", "IMG")
   
@@ -418,7 +467,9 @@ def get_parameters(p, num_data_sets):
   
   for k in p.keys():
     if "_file" in k:
-      gd.addFileField(k, str(p[k]))		
+      gd.addFileField(k, str(p[k]))	
+    elif type(p[k]) is list:
+      gd.addChoice(k, p[k], p[k][0])	
     elif type(p[k]) == type(""):
       gd.addStringField(k, p[k])
     elif type(p[k]) == type(1):
@@ -433,6 +484,8 @@ def get_parameters(p, num_data_sets):
   for k in p.keys():
     if type(p[k]) == type(""):
       p[k] = gd.getNextString()
+    elif type(p[k]) is list:
+      p[k] = gd.getNextChoice()
     elif type(p[k]) == type(1):
       p[k] = int(gd.getNextNumber())
     elif type(p[k]) == type(1.0):
@@ -445,6 +498,7 @@ if __name__ == '__main__':
 
   print("#\n# Elastix registration\n#")
 
+ 
   #
   # GET INPUT FOLDER
   #
@@ -452,14 +506,7 @@ if __name__ == '__main__':
   input_folder = od.getDirectory()
   if input_folder is None:
     sys.exit("No folder selected!")
-    
-  #
-  # MAKE OUTPUT FOLDER
-  #
-  output_folder = input_folder[:-1]+"--fiji"
-  if not os.path.isdir(output_folder):
-    os.mkdir(output_folder)
-    
+      
   #
   # DETERMINE INPUT FILES
   #
@@ -475,11 +522,12 @@ if __name__ == '__main__':
   
   # registration method
   #p["to_be_analyzed"] = "all"
+  p['output_folder'] = str(input_folder[:-1]+"--fiji")
   p["channels"] = "ch0,ch1"
   p["ch_ref"] = "ch0"
   p["image_background_value"] = 20
   p["elastix_binary_file"] = "C:\\Program Files\\elastix_v4.8\\elastix"
-  p["elastix_parameter_file"] = "C:\\Users\\tischer\\Downloads\\fiji-registration-master (1)\\fiji-registration-master\\parameters_Affine.txt"
+  p["elastix_parameter_file"] = "C:\\Users\\tischer\\Downloads\\fiji-registration-master (1)\\fiji-registration-master\\parameters.txt"
   p["transformix_binary_file"] = "C:\\Program Files\\elastix_v4.8\\transformix"
   p["mask_file"] = "" #'Z:\\HenningFalk\\Tischi_Reg\\mask.tif'
   #p["reference_id"] = 0
@@ -491,13 +539,37 @@ if __name__ == '__main__':
   p["image_dimensions"] = 2 
   p["number_of_spatial_samples"] = 3000
   p['median_window'] = 0
-  
-  p = get_parameters(p, len(files))
-  print(p)
+  p['transformation'] = ["TranslationTransform", "EulerTransform", "AffineTransform"]
 
+  print(p)
+  p = get_parameters(p, len(files))
+
+  # reformat parameters
   p["channels"] = p["channels"].split(",")
   p["image_pyramid_schedule"] = p["image_pyramid_schedule"].split(",")
-    
+
+  s = ""; 
+  for resolution in p["image_pyramid_schedule"]:
+    for d in range(p["image_dimensions"]): 
+      s = s + resolution + " "
+  p["number_of_resolutions"] = len(p["image_pyramid_schedule"])
+  p["image_pyramid_schedule"] = s
+
+  print(p)
+
+  #
+  # Make output folder
+  #
+  
+  if not os.path.isdir(p['output_folder']):
+    os.mkdir(p['output_folder'])
+
+  #
+  # Create parameter file
+  #
+
+  make_parameter_file(p)
+  
   #
   # INIT INTERACTIVE TABLE
   #
@@ -531,22 +603,6 @@ if __name__ == '__main__':
   #
   print("#\n# Analysis\n#")
 
-  # reformat resolution pyramid layer parameters
-  s = ""; 
-  for resolution in p["image_pyramid_schedule"]:
-    for d in range(p["image_dimensions"]): 
-      s = s + resolution + " "
-  p["number_of_resolutions"] = len(p["image_pyramid_schedule"])
-  p["image_pyramid_schedule"] = s
-  
-  # adapt parameter file
-  changeLine(p["elastix_parameter_file"], "MaximumNumberOfIterations", "(MaximumNumberOfIterations "+str(int(p["maximum_number_of_iterations"]))+")")
-  changeLine(p["elastix_parameter_file"], "NumberOfResolutions", "(NumberOfResolutions "+str(p["number_of_resolutions"])+")")  
-  changeLine(p["elastix_parameter_file"], "ImagePyramidSchedule", "(ImagePyramidSchedule "+str(p["image_pyramid_schedule"])+")")  
-  changeLine(p["elastix_parameter_file"], "DefaultPixelValue", "(DefaultPixelValue "+str(p["image_background_value"])+")")  
-  changeLine(p["elastix_parameter_file"], "NumberOfSpatialSamples", "(NumberOfSpatialSamples "+str(p["number_of_spatial_samples"])+")")  
-
-
   #
   # Compute transformations  
   #
@@ -558,13 +614,13 @@ if __name__ == '__main__':
   previous_trafo = ""
   previous_transformed_image = ""
   for i in range(n_files-1,-1,-1):
-    tbModel, previous_trafo, previous_transformed_image = compute_transformations(p["reference_id"], i, tbModel, p, output_folder, previous_trafo, previous_transformed_image)    
+    tbModel, previous_trafo, previous_transformed_image = compute_transformations(p["reference_id"], i, tbModel, p, p['output_folder'], previous_trafo, previous_transformed_image)    
 
   #
   # Smooth transformations over time
   #
   if p['median_window']>1:
-    files = get_file_list(output_folder, 'TransformParameters.0-(.*)')
+    files = get_file_list(p['output_folder'], 'TransformParameters.0-(.*)')
     smooth_transformation_files(files, p)
   
   #
@@ -575,7 +631,7 @@ if __name__ == '__main__':
   # Apply (smoothed) transformations
   #
   for i in range(n_files):
-    tbModel = apply_transformation(i, tbModel, p, output_folder)
+    tbModel = apply_transformation(i, tbModel, p, p['output_folder'])
   
   print("done!")
 
