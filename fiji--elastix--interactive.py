@@ -30,6 +30,7 @@ from ij.process import ImageConverter
 import os, time, shutil, sys, math
 from ij.macro import MacroRunner
 from ij.gui import Plot
+import collections, pickle
 
 from loci.plugins import BF
 from loci.common import Region
@@ -311,15 +312,16 @@ def copy_file(src, dst):
 
 def make_parameter_file(p):
 
-  script_file = file(p["elastix_parameter_file"], "w")
+  file_path = os.path.join(p['output_folder']['value'],'elastix_parameters.txt')
+  script_file = file(file_path, "w")
 
   txt = [
-  '(Transform "'+p['transformation']+'")',
-  '(NumberOfResolutions '+str(p["number_of_resolutions"])+')',
-  '(ImagePyramidSchedule '+str(p["image_pyramid_schedule"])+')',
-  '(MaximumNumberOfIterations '+str(int(p["maximum_number_of_iterations"]))+')',
-  '(NumberOfSpatialSamples '+str(p["number_of_spatial_samples"])+')',
-  '(DefaultPixelValue '+str(p["image_background_value"])+')',
+  '(Transform "'+p['transformation']['value']+'")',
+  '(NumberOfResolutions '+str(p["number_of_resolutions"]['value'])+')',
+  '(ImagePyramidSchedule '+str(p["image_pyramid_schedule"]['value'])+')',
+  '(MaximumNumberOfIterations '+str(int(p["maximum_number_of_iterations"]['value']))+')',
+  '(NumberOfSpatialSamples '+str(p["number_of_spatial_samples"]['value'])+')',
+  '(DefaultPixelValue '+str(p["image_background_value"]['value'])+')',
   '(WriteTransformParametersEachIteration "false")',
   '(WriteTransformParametersEachResolution "false")',
   '(WriteResultImageAfterEachResolution "false")',
@@ -354,6 +356,7 @@ def make_parameter_file(p):
   script_file.write(txt)
   script_file.close()
 
+  return file_path
 
 #
 # Transformation
@@ -433,6 +436,7 @@ def apply_transformation(iDataSet, tbModel, p, output_folder):
       tbModel.setFileAbsolutePath(output_folder, moving_filename, iDataSet, "Transformed_"+ch, "IMG")
    
   return tbModel
+
  
 #
 # ANALYZE INPUT FILES
@@ -460,36 +464,47 @@ def get_file_list(foldername, reg_exp):
 #
 # GET PARAMETERS
 #
-def get_parameters(p, num_data_sets):
+
+def get_parameters(p):
   gd = GenericDialogPlus("Please enter parameters")
 
-  gd.addMessage("found "+str(num_data_sets)+" data sets")
-  
-  for k in p.keys():
-    if "_file" in k:
-      gd.addFileField(k, str(p[k]))	
-    elif type(p[k]) is list:
-      gd.addChoice(k, p[k], p[k][0])	
-    elif type(p[k]) == type(""):
-      gd.addStringField(k, p[k])
-    elif type(p[k]) == type(1):
-      gd.addNumericField(k, p[k],0)
-    elif type(p[k]) == type(1.0):
-      gd.addNumericField(k, p[k],2)
+  for k in p['expose_to_gui']['value']:
+    if p[k]['type'] == 'folder':
+      gd.addDirectoryField(k, p[k]['value'], 100)	
+    if p[k]['type'] == 'file':
+      gd.addFileField(k, p[k]['value'], 100)	
+    elif p[k]['type'] == 'string':
+      if p[k]['choices']:
+        gd.addChoice(k, p[k]['choices'], p[k]['value'])	
+      else:
+        gd.addStringField(k, p[k]['value'])	 
+    elif p[k]['type'] == 'int':
+      if p[k]['choices']:
+        gd.addChoice(k, p[k]['choices'], p[k]['value'])	
+      else:
+        gd.addNumericField(k, p[k]['value'], 0)	 
+    elif p[k]['type'] == 'float':
+      gd.addNumericField(k, p[k]['value'], 2)
   
   gd.showDialog()
   if gd.wasCanceled():
     return
 
-  for k in p.keys():
-    if type(p[k]) == type(""):
-      p[k] = gd.getNextString()
-    elif type(p[k]) is list:
-      p[k] = gd.getNextChoice()
-    elif type(p[k]) == type(1):
-      p[k] = int(gd.getNextNumber())
-    elif type(p[k]) == type(1.0):
-      p[k] = gd.getNextNumber()
+  for k in p['expose_to_gui']['value']:
+    if p[k]['type'] == 'folder' or p[k]['type'] == 'file':
+      p[k]['value'] = gd.getNextString()
+    elif p[k]['type'] == 'string':
+      if p[k]['choices']:
+        p[k]['value'] = gd.getNextChoice()	
+      else:
+        p[k]['value'] = gd.getNextString()	 
+    elif p[k]['type'] == 'int':
+      if p[k]['choices']:
+        p[k]['value'] = int(gd.getNextChoice())	
+      else:
+        p[k]['value'] = int(gd.getNextNumber()) 
+    elif p[k]['type'] == 'float':
+        p[k]['value'] = gd.getNextNumber()
     
   return p
 
@@ -498,78 +513,96 @@ if __name__ == '__main__':
 
   print("#\n# Elastix registration\n#")
 
- 
-  #
-  # GET INPUT FOLDER
-  #
-  od = OpenDialog("Select one of the images to be analysed", None)
-  input_folder = od.getDirectory()
-  if input_folder is None:
-    sys.exit("No folder selected!")
-      
-  #
-  # DETERMINE INPUT FILES
-  #
-  tbModel = TableModel(input_folder)
-  files = get_file_list(input_folder, '(.*).tif')
-  
   #
   # GET PARAMETERS
   #
   print("#\n# Parameters\n#")
-  
-  p = dict()
-  
-  # registration method
-  #p["to_be_analyzed"] = "all"
-  p['output_folder'] = str(input_folder[:-1]+"--fiji")
-  p["channels"] = "ch0,ch1"
-  p["ch_ref"] = "ch0"
-  p["image_background_value"] = 20
-  p["elastix_binary_file"] = "C:\\Program Files\\elastix_v4.8\\elastix"
-  p["elastix_parameter_file"] = "C:\\Users\\tischer\\Downloads\\fiji-registration-master (1)\\fiji-registration-master\\parameters.txt"
-  p["transformix_binary_file"] = "C:\\Program Files\\elastix_v4.8\\transformix"
-  p["mask_file"] = "" #'Z:\\HenningFalk\\Tischi_Reg\\mask.tif'
-  #p["reference_id"] = 0
-  #p["save_maximum_projections"] = "Yes"
-  p["maximum_number_of_iterations"] = 300
-  # determine image size from file and use
-  # number_of_resolutions = print(int(math.log(image_size/10,2))
-  p["image_pyramid_schedule"] = "16,4" 
-  p["image_dimensions"] = 2 
-  p["number_of_spatial_samples"] = 3000
-  p['median_window'] = 0
-  p['transformation'] = ["TranslationTransform", "EulerTransform", "AffineTransform"]
 
-  print(p)
-  p = get_parameters(p, len(files))
+  #
+  # Load gui parameters
+  #
 
-  # reformat parameters
-  p["channels"] = p["channels"].split(",")
-  p["image_pyramid_schedule"] = p["image_pyramid_schedule"].split(",")
+  od = OpenDialog("Select parameter file (press CANCEL if you don't have one)", None)
+  f = od.getPath()
+  
+  if f:
+    print('loading parameters from file')
+    f = open(f, 'r'); p = pickle.load(f); f.close()
+  else:
+    print('starting from default parameters')
+    # make parameter structure if it has not been loaded
+    p = {}
+    # exposed to GUI
+    p['expose_to_gui'] = {'value': ['input_folder', 'output_folder', 'channels', 'ch_ref', 'transformation', 
+                          'image_background_value', 'mask_file', 'maximum_number_of_iterations', 'image_pyramid_schedule',
+                          'number_of_spatial_samples', 'elastix_binary_file', 'transformix_binary_file']}
+    p['input_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
+    p['output_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
+    p['image_dimensions'] = {'choices': [2,3], 'value': 2, 'type': 'int'} 
+    p['channels'] = {'choices': '', 'value': 'ch0,ch1', 'type': 'string'}
+    p['ch_ref'] = {'choices': '', 'value': 'ch0', 'type': 'string'}
+    p['transformation'] = {'choices': ['TranslationTransform', 'EulerTransform', 'AffineTransform'], 'value': 'TranslationTransform', 'type': 'string'}
+    p['image_background_value'] = {'choices': '', 'value': 127, 'type': 'int'}
+    p['mask_file'] = {'choices': '', 'value': '', 'type': 'file'}
+    p['maximum_number_of_iterations'] = {'choices': '', 'value': 300, 'type': 'int'}
+    p['image_pyramid_schedule'] = {'choices': '', 'value': '16,4', 'type': 'string'}
+    p['number_of_spatial_samples'] = {'choices': '', 'value': 3000, 'type': 'int'}    
+    p['elastix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\elastix', 'type': 'file'}
+    p['transformix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\transformix', 'type': 'file'}
+    # not exposed to gui
+    p['number_of_resolutions'] = {'value': ''}
+    p['elastix_parameter_file'] = {'value': ''}
+  
+  p = get_parameters(p)
+  
+  #
+  # Create derived paramters
+  #
+  p['number_of_resolutions']['value'] = len(p['image_pyramid_schedule']['value'].split(","))
+
+  #
+  # Create elastix parameter file
+  #
+  p['elastix_parameter_file']['value'] = make_parameter_file(p)
+
+  #
+  #
+  # Print paramteres to log window
+  #
+  for k in p.keys():
+    print(k + ": " + str(p[k]['value']))
+    IJ.log(k + ": " + str(p[k]['value']))
+
+  #
+  # Save gui parameters
+  #
+
+  f = open(os.path.join(p['output_folder']['value'], 'fiji--elastix--gui_parameters.p'), 'w')
+  pickle.dump(p, f)
+  f.close()
+   
+  #
+  # reformat some parameters for actual usage
+  # todo: maybe better do it locally when needed
+  #
+  p["channels"]['value'] = p["channels"]['value'].split(",")
+  p["image_pyramid_schedule"]['value'] = p["image_pyramid_schedule"]['value'].split(",")
 
   s = ""; 
-  for resolution in p["image_pyramid_schedule"]:
-    for d in range(p["image_dimensions"]): 
+  for resolution in p["image_pyramid_schedule"]['value']:
+    for d in range(p["image_dimensions"]['value']): 
       s = s + resolution + " "
-  p["number_of_resolutions"] = len(p["image_pyramid_schedule"])
-  p["image_pyramid_schedule"] = s
+  p["image_pyramid_schedule"]['value'] = s
 
-  print(p)
 
   #
-  # Make output folder
+  # DETERMINE INPUT FILES
   #
+      
+  tbModel = TableModel(p['input_folder']['value'])
+  files = get_file_list(p['input_folder']['value'], '(.*).tif')
   
-  if not os.path.isdir(p['output_folder']):
-    os.mkdir(p['output_folder'])
 
-  #
-  # Create parameter file
-  #
-
-  make_parameter_file(p)
-  
   #
   # INIT INTERACTIVE TABLE
   #
@@ -584,19 +617,19 @@ if __name__ == '__main__':
     
   sorted_files = sorted(files)
   print("#\n# Files to be analyzed\n#")
-  for ch in p["channels"]:
+  for ch in p["channels"]['value']:
     iDataSet = 0
     for afile in sorted_files:
       if ch in afile.split("\\")[-1]:
-        if ch == p["channels"][0]:
+        if ch == p["channels"]['value'][0]:
           tbModel.addRow()
           print(str(iDataSet)+": "+afile)
         tbModel.setFileAbsolutePath(afile, iDataSet, "Input_"+ch,"IMG")
         iDataSet = iDataSet + 1
 
-  #frame=ManualControlFrame(tbModel)
-  #frame.setVisible(True)
-  #ddd
+  frame=ManualControlFrame(tbModel)
+  frame.setVisible(True)
+  ddd
   
   #
   # ANALYZE
