@@ -211,7 +211,7 @@ def smooth_transformation_files(files, p):
   for i in range(len(transformations[0])):
     trafo = [float(t[i]) for t in transformations]
     scatter_plot('trafo', range(len(trafo)), trafo, 'frame', 't'+str(i))
-    median_trafo = running_median(trafo, p['median_window'])
+    median_trafo = running_median(trafo, p['median'])
     scatter_plot('trafo_median', range(len(trafo)),  median_trafo, 'frame', 't'+str(i))
     for j in range(len(trafo)):
       transformations[j][i] = median_trafo[j]
@@ -312,16 +312,24 @@ def copy_file(src, dst):
 
 def make_parameter_file(p):
 
-  file_path = os.path.join(p['output_folder']['value'],'elastix_parameters.txt')
+  file_path = p['elastix_parameter_file']
   script_file = file(file_path, "w")
 
+  image_pyramid_schedule = p["image_pyramid_schedule"].split(",")
+  s = ""; 
+  for resolution in image_pyramid_schedule:
+    for d in range(p["image_dimensions"]): 
+      s = s + resolution + " "
+  image_pyramid_schedule = s
+
+
   txt = [
-  '(Transform "'+p['transformation']['value']+'")',
-  '(NumberOfResolutions '+str(p["number_of_resolutions"]['value'])+')',
-  '(ImagePyramidSchedule '+str(p["image_pyramid_schedule"]['value'])+')',
-  '(MaximumNumberOfIterations '+str(int(p["maximum_number_of_iterations"]['value']))+')',
-  '(NumberOfSpatialSamples '+str(p["number_of_spatial_samples"]['value'])+')',
-  '(DefaultPixelValue '+str(p["image_background_value"]['value'])+')',
+  '(Transform "'+p['transformation']+'")',
+  '(NumberOfResolutions '+str(p["number_of_resolutions"])+')',
+  '(ImagePyramidSchedule '+image_pyramid_schedule+')',
+  '(MaximumNumberOfIterations '+str(int(p["maximum_number_of_iterations"]))+')',
+  '(NumberOfSpatialSamples '+str(p["number_of_spatial_samples"])+')',
+  '(DefaultPixelValue '+str(p["image_background_value"])+')',
   '(WriteTransformParametersEachIteration "false")',
   '(WriteTransformParametersEachResolution "false")',
   '(WriteResultImageAfterEachResolution "false")',
@@ -527,80 +535,67 @@ if __name__ == '__main__':
   
   if f:
     print('loading parameters from file')
-    f = open(f, 'r'); p = pickle.load(f); f.close()
+    f = open(f, 'r'); p_gui = pickle.load(f); f.close()
   else:
     print('starting from default parameters')
     # make parameter structure if it has not been loaded
-    p = {}
+    p_gui = {}
     # exposed to GUI
-    p['expose_to_gui'] = {'value': ['input_folder', 'output_folder', 'channels', 'ch_ref', 'transformation', 
+    p_gui['expose_to_gui'] = {'value': ['input_folder', 'output_folder', 'channels', 'ch_ref', 'transformation', 
                           'image_background_value', 'mask_file', 'maximum_number_of_iterations', 'image_pyramid_schedule',
                           'number_of_spatial_samples', 'elastix_binary_file', 'transformix_binary_file']}
-    p['input_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
-    p['output_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
-    p['image_dimensions'] = {'choices': [2,3], 'value': 2, 'type': 'int'} 
-    p['channels'] = {'choices': '', 'value': 'ch0,ch1', 'type': 'string'}
-    p['ch_ref'] = {'choices': '', 'value': 'ch0', 'type': 'string'}
-    p['transformation'] = {'choices': ['TranslationTransform', 'EulerTransform', 'AffineTransform'], 'value': 'TranslationTransform', 'type': 'string'}
-    p['image_background_value'] = {'choices': '', 'value': 127, 'type': 'int'}
-    p['mask_file'] = {'choices': '', 'value': '', 'type': 'file'}
-    p['maximum_number_of_iterations'] = {'choices': '', 'value': 300, 'type': 'int'}
-    p['image_pyramid_schedule'] = {'choices': '', 'value': '16,4', 'type': 'string'}
-    p['number_of_spatial_samples'] = {'choices': '', 'value': 3000, 'type': 'int'}    
-    p['elastix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\elastix', 'type': 'file'}
-    p['transformix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\transformix', 'type': 'file'}
-    # not exposed to gui
-    p['number_of_resolutions'] = {'value': ''}
-    p['elastix_parameter_file'] = {'value': ''}
-  
-  p = get_parameters(p)
+    p_gui['input_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
+    p_gui['output_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
+    p_gui['image_dimensions'] = {'choices': [2,3], 'value': 2, 'type': 'int'} 
+    p_gui['channels'] = {'choices': '', 'value': 'ch0,ch1', 'type': 'string'}
+    p_gui['ch_ref'] = {'choices': '', 'value': 'ch0', 'type': 'string'}
+    p_gui['transformation'] = {'choices': ['TranslationTransform', 'EulerTransform', 'AffineTransform'], 'value': 'TranslationTransform', 'type': 'string'}
+    p_gui['image_background_value'] = {'choices': '', 'value': 127, 'type': 'int'}
+    p_gui['mask_file'] = {'choices': '', 'value': '', 'type': 'file'}
+    p_gui['maximum_number_of_iterations'] = {'choices': '', 'value': 300, 'type': 'int'}
+    p_gui['image_pyramid_schedule'] = {'choices': '', 'value': '16,4', 'type': 'string'}
+    p_gui['number_of_spatial_samples'] = {'choices': '', 'value': 3000, 'type': 'int'}    
+    p_gui['elastix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\elastix', 'type': 'file'}
+    p_gui['transformix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\transformix', 'type': 'file'}
+    p_gui['number_of_resolutions'] = {'value': ''}
+    p_gui['elastix_parameter_file'] = {'value': ''}
+
+  #
+  # Expose parameters to users
+  #
+  p_gui = get_parameters(p_gui)
   
   #
   # Create derived paramters
   #
-  p['number_of_resolutions']['value'] = len(p['image_pyramid_schedule']['value'].split(","))
-
-  #
-  # Create elastix parameter file
-  #
-  p['elastix_parameter_file']['value'] = make_parameter_file(p)
-
-  #
-  #
-  # Print paramteres to log window
-  #
-  for k in p.keys():
-    print(k + ": " + str(p[k]['value']))
-    IJ.log(k + ": " + str(p[k]['value']))
-
+  p_gui['number_of_resolutions'] = {'value': len(p_gui['image_pyramid_schedule']['value'].split(","))}
+  p_gui['elastix_parameter_file'] = {'value': os.path.join(p_gui['output_folder']['value'], 'elastix-parameters.txt')}
+  
   #
   # Save gui parameters
   #
-
-  f = open(os.path.join(p['output_folder']['value'], 'fiji--elastix--gui_parameters.p'), 'w')
-  pickle.dump(p, f)
+  f = open(os.path.join(p_gui['output_folder']['value'], 'fiji-elastix-gui-parameters.txt'), 'w')
+  pickle.dump(p_gui, f)
   f.close()
    
   #
-  # reformat some parameters for actual usage
-  # todo: maybe better do it locally when needed
-  #
-  p["channels"]['value'] = p["channels"]['value'].split(",")
-  p["image_pyramid_schedule"]['value'] = p["image_pyramid_schedule"]['value'].split(",")
+  # Reformat gui parameters for actual usage
+  # 
+  p = {}
+  for k in p_gui.keys():
+    p[k] = p_gui[k]['value']
+  
+  p['channels'] = p_gui['channels']['value'].split(",")
 
-  s = ""; 
-  for resolution in p["image_pyramid_schedule"]['value']:
-    for d in range(p["image_dimensions"]['value']): 
-      s = s + resolution + " "
-  p["image_pyramid_schedule"]['value'] = s
-
+  print p
+  
 
   #
   # DETERMINE INPUT FILES
   #
       
-  tbModel = TableModel(p['input_folder']['value'])
-  files = get_file_list(p['input_folder']['value'], '(.*).tif')
+  tbModel = TableModel(p['input_folder'])
+  files = get_file_list(p['input_folder'], '(.*).tif')
   
 
   #
@@ -617,24 +612,30 @@ if __name__ == '__main__':
     
   sorted_files = sorted(files)
   print("#\n# Files to be analyzed\n#")
-  for ch in p["channels"]['value']:
+  for ch in p["channels"]:
     iDataSet = 0
     for afile in sorted_files:
       if ch in afile.split("\\")[-1]:
-        if ch == p["channels"]['value'][0]:
+        if ch == p["channels"][0]:
           tbModel.addRow()
           print(str(iDataSet)+": "+afile)
         tbModel.setFileAbsolutePath(afile, iDataSet, "Input_"+ch,"IMG")
         iDataSet = iDataSet + 1
 
-  frame=ManualControlFrame(tbModel)
-  frame.setVisible(True)
-  ddd
+  #frame=ManualControlFrame(tbModel)
+  #frame.setVisible(True)
+  
   
   #
   # ANALYZE
   #
   print("#\n# Analysis\n#")
+
+  #
+  # Create elastix parameter file
+  #
+  
+  make_parameter_file(p)
 
   #
   # Compute transformations  
@@ -643,24 +644,20 @@ if __name__ == '__main__':
   #for i in range(n_files):
   #  compute_transformations(p["reference_id"], i, tbModel, p, output_folder)    
 
-  p["reference_id"] = n_files-1
+  reference_id = n_files-1
   previous_trafo = ""
   previous_transformed_image = ""
   for i in range(n_files-1,-1,-1):
-    tbModel, previous_trafo, previous_transformed_image = compute_transformations(p["reference_id"], i, tbModel, p, p['output_folder'], previous_trafo, previous_transformed_image)    
+    tbModel, previous_trafo, previous_transformed_image = compute_transformations(reference_id, i, tbModel, p, p['output_folder'], previous_trafo, previous_transformed_image)    
 
   #
   # Smooth transformations over time
   #
-  if p['median_window']>1:
-    files = get_file_list(p['output_folder'], 'TransformParameters.0-(.*)')
-    smooth_transformation_files(files, p)
+  #if p['median_window'] > 1:
+  #  files = get_file_list(p['output_folder'], 'TransformParameters.0-(.*)')
+  #  smooth_transformation_files(files, p)
   
   #
-  # Todo; this does not always make sense!
-  #
-  #
-  
   # Apply (smoothed) transformations
   #
   for i in range(n_files):
