@@ -30,7 +30,7 @@ from ij.process import ImageConverter
 import os, time, shutil, sys, math
 from ij.macro import MacroRunner
 from ij.gui import Plot
-import collections, pickle
+import collections, pickle, platform
 
 from loci.plugins import BF
 from loci.common import Region
@@ -106,23 +106,16 @@ def compute_overlap(tbModel, iDataSet, impA, iChannelA, iChannelB):
   return tbModel
 
 def cmd(args):
+  os.environ["DYLD_LIBRARY_PATH"] = "/Users/tischi/Downloads/elastix_macosx64_v4.8/lib:$DYLD_LIBRARY_PATH"
+  #p = Popen(['/Users/tischi/Downloads/elastix_macosx64_v4.8/bin/elastix','--help'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+  #output, err = p.communicate()  
   p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-  output, err = p.communicate()
+  output, err = p.communicate()  
+  #print args
+  #print output
+  #print err
   return(output)
      
-def convert_for_elastix(input_file, output_file):
-  print("    creating mha")
-  print("      reading tif")
-  start_time = time.time()
-  imp = IJ.openImage(input_file)
-  IJ.run(imp, "Properties...", "unit=pixel pixel_width=1.0000 pixel_height=1.0000 voxel_depth=1.0000")
-  print("        time elapsed: "+str(round(time.time()-start_time,3)))
-  print("      writing mha")
-  start_time = time.time()
-  IJ.run(imp, "MHD/MHA ...", "save="+output_file);
-  print("        time elapsed: "+str(round(time.time()-start_time,3)))
-  return output_file
-
 def deleteLine(fn, txt):
   f = open(fn)
   output = []
@@ -148,35 +141,6 @@ def changeLine(fn, txt_id, txt):
   f = open(fn, 'w')
   f.writelines(output)
   f.close()
-
-
-# - the conversion to unsigned int is ugly!
-# - weird behavior of IJ.openImage: it shows the image but does not put anything into the imp
-#   - report to Wayne
-def convert_from_elastix(original_filename, output_folder, save_as_max):
-  print("    reading mha")
-  start_time = time.time()
-  IJ.openImage(os.path.join(output_folder,"result.0.mha"))
-  print("      time elapsed: "+str(round(time.time()-start_time,3)))
-  imp = IJ.getImage()
-  IJ.run(imp, "32-bit", "");
-  IJ.setMinAndMax(0, 65535);
-  IJ.run(imp, "16-bit", "");
-  output_file = os.path.join(output_folder,original_filename+"--transformed.tif")
-  print("    writing tif")
-  start_time = time.time()
-  IJ.saveAs(imp, "Tiff", output_file)
-  print("      time elapsed: "+str(round(time.time()-start_time,3)))
-  # optional to save maximum projections
-  if(save_as_max):
-    if(imp.getStackSize()>1):
-      print("    make and save z-max")
-      start_time = time.time()
-      IJ.run(imp, "Z Project...", "projection=[Max Intensity]")
-      IJ.saveAs(IJ.getImage(), "Tiff", output_file+"--z-max.tif")
-      print("      time elapsed: "+str(round(time.time()-start_time,3)))
-  return output_file
-
 
 
 def transformix(moving_file, output_folder, p, transformation_file):
@@ -268,22 +232,11 @@ def running_median(seq, M):
 def elastix(fixed_file, moving_file, output_folder, p, init_with_trafo = ""):
   print("  running elastix:")
   
+  cmd_args = [p["elastix_binary_file"], '-priority', 'HIGH', '-f', fixed_file, '-m', moving_file, '-out', output_folder, '-p',  p["elastix_parameter_file"]]
+
   if init_with_trafo: 
-    #fixed_file = os.path.join(output_folder, "fixed.mha") 
-    #if os.path.isfile(fixed_file):
-    #  os.remove(fixed_file); time.sleep(1)
-    #os.rename(os.path.join(output_folder, "result.0.mha"), fixed_file); time.sleep(1)
-    # fixed file exists already
-    # fixed_file = os.path.join(output_folder, "fixed.mha") 
-    # use previous transformation parameters as initialisation
-    #previous_transformation = os.path.join(output_folder, "TransformParameters.previous.txt")
-    #shutil.copyfile(os.path.join(output_folder, "TransformParameters.0.txt"), previous_transformation); time.sleep(1)
-    #deleteLine(previous_transformation, "InitialTransform"); time.sleep(1)
-    cmd_args = [p["elastix_binary_file"], '-priority', 'HIGH', '-f', fixed_file, '-m', moving_file, '-out', output_folder, '-p',  p["elastix_parameter_file"]]
     cmd_args.append('-t0')
     cmd_args.append(init_with_trafo)   
-  else:
-    cmd_args = [p["elastix_binary_file"], '-priority', 'HIGH', '-f', fixed_file, '-m', moving_file, '-out', output_folder, '-p',  p["elastix_parameter_file"]]
    
   if p['mask_file']:
     cmd_args.append('-fMask')
@@ -300,7 +253,9 @@ def elastix(fixed_file, moving_file, output_folder, p, init_with_trafo = ""):
   return(output)     
   
 def copy_file(src, dst):
-  #print("  copying file: "+src)
+  #print("  copying file: ")
+  #print("    src: "+src)
+  #print("    dst: "+dst)
   #start_time = time.time()
   shutil.copyfile(src, dst)
   #print("    time elapsed: "+str(round(time.time()-start_time,3)))
@@ -356,7 +311,7 @@ def make_parameter_file(p):
   '(FinalBSplineInterpolationOrder 3)',
   '(WriteResultImage "true")',
   '(ResultImagePixelType "short")', # adapt this!
-  '(ResultImageFormat "mha")' # why not tif?
+  '(ResultImageFormat "tif")' # why not tif?
   ]
   txt = '\n'.join(txt)
   txt = txt + '\n'
@@ -401,27 +356,21 @@ def compute_transformations(iReference, iDataSet, tbModel, p, output_folder, ini
   # store results
   #
 
-  # construct moving filename for storing results
-  moving_filename = tbModel.getFileName(iDataSet, "Input_"+p["ch_ref"], "IMG")+"--transformed.mha"
+  # construct transformed filename 
+  transformed_filename = tbModel.getFileName(iDataSet, "Input_"+p["ch_ref"], "IMG")+"--transformed."+p['output_format']
   
-  # store results file by renaming
-  os.rename(os.path.join(output_folder, "result.0.mha"), os.path.join(output_folder, moving_filename)); time.sleep(1)
-  tbModel.setFileAbsolutePath(output_folder, moving_filename, iDataSet, "Transformed_"+p['ch_ref'], "IMG")
+  # secure transformed file by renaming
+  os.rename(os.path.join(output_folder, "result.0."+p['output_format']), os.path.join(output_folder, transformed_filename)); time.sleep(1)
+  tbModel.setFileAbsolutePath(output_folder, transformed_filename, iDataSet, "Transformed_"+p['ch_ref'], "IMG")
     
   # store transformation file
-  transformation_file = os.path.join(output_folder, "transformation-"+str(moving_file.split('\\')[-1]+".txt"))
+  transformation_file = os.path.join(output_folder, "transformation-"+str(moving_file.split(os.sep)[-1]+".txt"))
   copy_file(os.path.join(output_folder, "TransformParameters.0.txt"), transformation_file )
-  #deleteLine(transformation_file, "InitialTransform")
-  # store path to reference file in table
-  #tbModel.setFileAbsolutePath(iDataSet, "IMG"), iDataSet, "Reference", "IMG")
-
-  # copy transformed file
-  #copy_file(os.path.join(output_folder, "result.0.mha"), os.path.join(output_folder, moving_filename))
-       
+         
   # store log file
-  copy_file(os.path.join(output_folder, "elastix.log"), os.path.join(output_folder, "elastix-"+str(moving_file.split('\\')[-1]+".log")))
+  copy_file(os.path.join(output_folder, "elastix.log"), os.path.join(output_folder, "elastix-"+str(moving_file.split(os.sep)[-1]+".log")))
 
-  return tbModel, transformation_file, os.path.join(output_folder, moving_filename)
+  return tbModel, transformation_file, os.path.join(output_folder, transformed_filename)
 
 
 
@@ -435,13 +384,13 @@ def apply_transformation(iDataSet, tbModel, p, output_folder):
     if not ch==p["ch_ref"]:
       moving_file = tbModel.getFileAbsolutePathString(iDataSet, "Input_"+ch, "IMG")
       moving_ref_file = tbModel.getFileAbsolutePathString(iDataSet, "Input_"+p["ch_ref"], "IMG") # only needed to get the reference file   
-      transformation_file = os.path.join(output_folder, "transformation-"+str(moving_ref_file.split('\\')[-1]+".txt"))
+      transformation_file = os.path.join(output_folder, "transformation-"+str(moving_ref_file.split(os.sep)[-1]+".txt"))
       transformix(moving_file, output_folder, p, transformation_file) 
       
       # store transformed file by renaming
-      moving_filename = tbModel.getFileName(iDataSet, "Input_"+ch, "IMG")+"--transformed.mha"
-      os.rename(os.path.join(output_folder, "result.mha"), os.path.join(output_folder, moving_filename))
-      tbModel.setFileAbsolutePath(output_folder, moving_filename, iDataSet, "Transformed_"+ch, "IMG")
+      transformed_filename = tbModel.getFileName(iDataSet, "Input_"+ch, "IMG")+"--transformed."+p['output_format']
+      os.rename(os.path.join(output_folder, "result."+p['output_format']), os.path.join(output_folder, transformed_filename))
+      tbModel.setFileAbsolutePath(output_folder, transformed_filename, iDataSet, "Transformed_"+ch, "IMG")
    
   return tbModel
 
@@ -541,20 +490,22 @@ if __name__ == '__main__':
     # make parameter structure if it has not been loaded
     p_gui = {}
     # exposed to GUI
-    p_gui['expose_to_gui'] = {'value': ['input_folder', 'output_folder', 'channels', 'ch_ref', 'transformation', 
+    p_gui['expose_to_gui'] = {'value': ['input_folder', 'output_folder', 'output_format', 'channels', 'ch_ref', 'reference_image_index', 'transformation', 
                           'image_background_value', 'mask_file', 'maximum_number_of_iterations', 'image_pyramid_schedule',
                           'number_of_spatial_samples', 'elastix_binary_file', 'transformix_binary_file']}
     p_gui['input_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
     p_gui['output_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
+    p_gui['output_format'] = {'choices': ['mha','tif'], 'value': 'tif', 'type': 'string'}
     p_gui['image_dimensions'] = {'choices': [2,3], 'value': 2, 'type': 'int'} 
     p_gui['channels'] = {'choices': '', 'value': 'ch0,ch1', 'type': 'string'}
     p_gui['ch_ref'] = {'choices': '', 'value': 'ch0', 'type': 'string'}
-    p_gui['transformation'] = {'choices': ['TranslationTransform', 'EulerTransform', 'AffineTransform'], 'value': 'TranslationTransform', 'type': 'string'}
-    p_gui['image_background_value'] = {'choices': '', 'value': 127, 'type': 'int'}
+    p_gui['reference_image_index'] = {'choices': '', 'value': 0, 'type': 'int'}
+    p_gui['transformation'] = {'choices': ['TranslationTransform', 'EulerTransform', 'AffineTransform'], 'value': 'AffineTransform', 'type': 'string'}
+    p_gui['image_background_value'] = {'choices': '', 'value': 16, 'type': 'int'}
     p_gui['mask_file'] = {'choices': '', 'value': '', 'type': 'file'}
-    p_gui['maximum_number_of_iterations'] = {'choices': '', 'value': 300, 'type': 'int'}
+    p_gui['maximum_number_of_iterations'] = {'choices': '', 'value': 500, 'type': 'int'}
     p_gui['image_pyramid_schedule'] = {'choices': '', 'value': '16,4', 'type': 'string'}
-    p_gui['number_of_spatial_samples'] = {'choices': '', 'value': 3000, 'type': 'int'}    
+    p_gui['number_of_spatial_samples'] = {'choices': '', 'value': 1000, 'type': 'int'}    
     p_gui['elastix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\elastix', 'type': 'file'}
     p_gui['transformix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\transformix', 'type': 'file'}
     p_gui['number_of_resolutions'] = {'value': ''}
@@ -587,9 +538,6 @@ if __name__ == '__main__':
   
   p['channels'] = p_gui['channels']['value'].split(",")
 
-  print p
-  
-
   #
   # DETERMINE INPUT FILES
   #
@@ -615,7 +563,7 @@ if __name__ == '__main__':
   for ch in p["channels"]:
     iDataSet = 0
     for afile in sorted_files:
-      if ch in afile.split("\\")[-1]:
+      if ch in afile.split(os.sep)[-1]:
         if ch == p["channels"][0]:
           tbModel.addRow()
           print(str(iDataSet)+": "+afile)
@@ -641,14 +589,24 @@ if __name__ == '__main__':
   # Compute transformations  
   #
   n_files = tbModel.getRowCount()
-  #for i in range(n_files):
-  #  compute_transformations(p["reference_id"], i, tbModel, p, output_folder)    
-
-  reference_id = n_files-1
+  
+  # backwards from reference file
   previous_trafo = ""
   previous_transformed_image = ""
-  for i in range(n_files-1,-1,-1):
-    tbModel, previous_trafo, previous_transformed_image = compute_transformations(reference_id, i, tbModel, p, p['output_folder'], previous_trafo, previous_transformed_image)    
+  for i in range(p['reference_image_index'],-1,-1):
+    # compute transformation and transform reference channel
+    tbModel, previous_trafo, previous_transformed_image = compute_transformations(p['reference_image_index'], i, tbModel, p, p['output_folder'], previous_trafo, previous_transformed_image)    
+    # apply transformation to all other channels
+    tbModel = apply_transformation(i, tbModel, p, p['output_folder'])
+
+  # forward from reference file
+  previous_trafo = ""
+  previous_transformed_image = ""
+  for i in range(p['reference_image_index'],n_files,+1):
+    # compute transformation and transform reference channel
+    tbModel, previous_trafo, previous_transformed_image = compute_transformations(p['reference_image_index'], i, tbModel, p, p['output_folder'], previous_trafo, previous_transformed_image)    
+    # apply transformation to all other channels
+    tbModel = apply_transformation(i, tbModel, p, p['output_folder'])
 
   #
   # Smooth transformations over time
@@ -657,17 +615,11 @@ if __name__ == '__main__':
   #  files = get_file_list(p['output_folder'], 'TransformParameters.0-(.*)')
   #  smooth_transformation_files(files, p)
   
-  #
-  # Apply (smoothed) transformations
-  #
-  for i in range(n_files):
-    tbModel = apply_transformation(i, tbModel, p, p['output_folder'])
-  
   print("done!")
 
   close_all_image_windows()
   
-  frame=ManualControlFrame(tbModel)
+  frame = ManualControlFrame(tbModel)
   frame.setVisible(True)
   
   
