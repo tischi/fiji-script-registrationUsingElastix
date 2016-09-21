@@ -321,6 +321,23 @@ def make_parameter_file(p):
 
   return file_path
 
+def show_standard_error_message():
+  IJ.error("There was an error.\n\
+Please check the text below the script editor window.\n\
+Please toggle between [Show Errors] and [Show Output], as both are relevant.")
+    
+def rename(old_filepath, new_filepath):
+  try:
+    os.rename(old_filepath, new_filepath); time.sleep(1)
+  except:
+    show_standard_error_message()
+    print("\n  error during renaming:")
+    print("    renaming: "+old_filepath)
+    print("        into: "+new_filepath)
+    print("  Often this happens because the target file exists already and is write protected; please try again with a new output folder.")
+    sys.exit(0)
+  
+
 #
 # Transformation
 #
@@ -351,6 +368,14 @@ def compute_transformations(iReference, iDataSet, tbModel, p, output_folder, ini
   moving_file = tbModel.getFileAbsolutePathString(iDataSet, "Input_"+p["ch_ref"], "IMG")
   
   elastix(fixed_file, moving_file, output_folder, p, init_with_trafo) 
+  elastix_output_filepath = os.path.join(output_folder, "result.0."+p['output_format'])
+  
+  # check if it worked
+  if not os.path.isfile(elastix_output_filepath):
+    show_standard_error_message()
+    print("\nThe elastix output file was not produced: " + elastix_output_filepath)
+    print("Please check the elastix log file: " + os.path.join(output_folder, "elastix.log"))
+    sys.exit(0)
 
   #
   # store results
@@ -360,9 +385,8 @@ def compute_transformations(iReference, iDataSet, tbModel, p, output_folder, ini
   transformed_filename = tbModel.getFileName(iDataSet, "Input_"+p["ch_ref"], "IMG")+"--transformed."+p['output_format']
   
   # secure transformed file by renaming
-  print("    renaming: "+os.path.join(output_folder, "result.0."+p['output_format']))
-  print("        into: "+os.path.join(output_folder, transformed_filename))
-  os.rename(os.path.join(output_folder, "result.0."+p['output_format']), os.path.join(output_folder, transformed_filename)); time.sleep(1)
+  rename(elastix_output_filepath, os.path.join(output_folder, transformed_filename))
+    
   tbModel.setFileAbsolutePath(output_folder, transformed_filename, iDataSet, "Transformed_"+p['ch_ref'], "IMG")
     
   # store transformation file
@@ -391,7 +415,7 @@ def apply_transformation(iDataSet, tbModel, p, output_folder):
       
       # store transformed file by renaming
       transformed_filename = tbModel.getFileName(iDataSet, "Input_"+ch, "IMG")+"--transformed."+p['output_format']
-      os.rename(os.path.join(output_folder, "result."+p['output_format']), os.path.join(output_folder, transformed_filename))
+      rename(os.path.join(output_folder, "result."+p['output_format']), os.path.join(output_folder, transformed_filename))
       tbModel.setFileAbsolutePath(output_folder, transformed_filename, iDataSet, "Transformed_"+ch, "IMG")
    
   return tbModel
@@ -471,7 +495,7 @@ def get_parameters(p):
 if __name__ == '__main__':
 
   print("#\n# Elastix registration\n#")
-
+    
   #
   # GET PARAMETERS
   #
