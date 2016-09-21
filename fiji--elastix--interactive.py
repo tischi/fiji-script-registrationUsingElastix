@@ -243,8 +243,8 @@ def elastix(fixed_file, moving_file, output_folder, p, init_with_trafo = ""):
     cmd_args.append(p['mask_file'])
     
   print("    initial trafo: "+init_with_trafo)
-  print("    register against: "+fixed_file) 
-  print("    moving file: "+moving_file)      
+  print("    reference: "+fixed_file) 
+  print("    to be transformed: "+moving_file)      
    
   start_time = time.time()   
   output = cmd(cmd_args)
@@ -311,7 +311,7 @@ def make_parameter_file(p):
   '(FinalBSplineInterpolationOrder 3)',
   '(WriteResultImage "true")',
   '(ResultImagePixelType "short")', # adapt this!
-  '(ResultImageFormat "tif")' # why not tif?
+  '(ResultImageFormat "'+p['output_format']+'")' # why not tif?
   ]
   txt = '\n'.join(txt)
   txt = txt + '\n'
@@ -360,6 +360,8 @@ def compute_transformations(iReference, iDataSet, tbModel, p, output_folder, ini
   transformed_filename = tbModel.getFileName(iDataSet, "Input_"+p["ch_ref"], "IMG")+"--transformed."+p['output_format']
   
   # secure transformed file by renaming
+  print("    renaming: "+os.path.join(output_folder, "result.0."+p['output_format']))
+  print("        into: "+os.path.join(output_folder, transformed_filename))
   os.rename(os.path.join(output_folder, "result.0."+p['output_format']), os.path.join(output_folder, transformed_filename)); time.sleep(1)
   tbModel.setFileAbsolutePath(output_folder, transformed_filename, iDataSet, "Transformed_"+p['ch_ref'], "IMG")
     
