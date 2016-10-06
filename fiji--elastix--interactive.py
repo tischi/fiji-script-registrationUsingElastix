@@ -142,6 +142,18 @@ def changeLine(fn, txt_id, txt):
   f.writelines(output)
   f.close()
 
+def write_vector_to_tab_delimited_file(vector, filepath):
+  output = []
+  for values in vector:
+    for i in range(len(values)):  
+      if i > 0:
+        output.append('\t')
+      output.append(str(values[i]))
+    output.append("\n")  
+  f = open(filepath, 'w')
+  f.writelines(output)
+  f.close()
+
 
 def transformix(moving_file, output_folder, p, transformation_file):
   print("  running transformix:")
@@ -159,31 +171,41 @@ def scatter_plot(title, x, y, x_lab, y_lab):
   #plot.setLimits(min(x),
   plot.show()
 
-def smooth_transformation_files(files, p):
-
+def analyze_transformation_files(p, tbModel):
+  print("\nAnalyzing transformation files:")
   transformations = []
     
-  for fn in files:
+  for iDataSet in range(tbModel.getRowCount()):
+    fn = tbModel.getFileAbsolutePathString(iDataSet, "Transformation", "TXT")
     f = open(fn)
     for line in f:
       if '(TransformParameters' in line:
         transformation = re.findall(r'[-+]?\d+[\.]?\d*', line)
+        transformation.append(fn)
+        transformation.append(tbModel.getFileAbsolutePathString(iDataSet, "Input_"+p["ch_ref"], "IMG"))
         transformations.append(transformation)
         break
-  f.close()
-  
-  for i in range(len(transformations[0])):
+    f.close()
+   
+  write_vector_to_tab_delimited_file(transformations, os.path.join(p['output_folder'],'transformation_parameters.txt'))
+    
+  for i in range(len(transformations[0])-2):
     trafo = [float(t[i]) for t in transformations]
+    #write_vector_to_file(trafo, os.path.join(p['output_folder'],'transformation_parameter_'+str(i)+".txt"))
     scatter_plot('trafo', range(len(trafo)), trafo, 'frame', 't'+str(i))
-    median_trafo = running_median(trafo, p['median'])
-    scatter_plot('trafo_median', range(len(trafo)),  median_trafo, 'frame', 't'+str(i))
-    for j in range(len(trafo)):
-      transformations[j][i] = median_trafo[j]
+    #
+    # apply some smoothing to the transformations
+    #
+    #median_trafo = running_median(trafo, p['median_window'])
+    #write_vector_to_file(median_trafo, os.path.join(p['output_folder'],'transformation_parameter_median_'+str(i)+".txt"))
+    #scatter_plot('trafo_median', range(len(trafo)),  median_trafo, 'frame', 't'+str(i))
+    #for j in range(len(trafo)):
+    #  transformations[j][i] = median_trafo[j]
 
-  for i, fn in enumerate(files):
-    transformation_line = " ".join('%.10f' % x for x  in transformations[i])
-    transformation_line = '(TransformParameters '+transformation_line+')\n'
-    changeLine(fn, '(TransformParameters', transformation_line)
+  #for i, fn in enumerate(files):
+  #  transformation_line = " ".join('%.10f' % x for x  in transformations[i])
+  #  transformation_line = '(TransformParameters '+transformation_line+')\n'
+  #  changeLine(fn, '(TransformParameters', transformation_line)
     
   return(1)
   
@@ -306,11 +328,11 @@ def make_parameter_file(p):
   '(NumberOfHistogramBins 32)',
   '(ErodeMask "false")',
   '(NewSamplesEveryIteration "true")',
-  '(ImageSampler "Random")',
+  '(ImageSampler "'+p['image_sampler']+'")', # '(ImageSampler "Random")'RandomSparseMask
   '(BSplineInterpolationOrder 1)', 
   '(FinalBSplineInterpolationOrder 3)',
   '(WriteResultImage "true")',
-  '(ResultImagePixelType "short")', # adapt this!
+  '(ResultImagePixelType "short")', # adapt and check this!
   '(ResultImageFormat "'+p['output_format']+'")' # why not tif?
   ]
   txt = '\n'.join(txt)
@@ -360,7 +382,6 @@ def compute_transformations(iReference, iDataSet, tbModel, p, output_folder, ini
   #
   # find transformation using reference channel
   #
-  
   if not previous_transformed_image:
     fixed_file = tbModel.getFileAbsolutePathString(iReference, "Input_"+p["ch_ref"], "IMG")
   else:
@@ -390,8 +411,13 @@ def compute_transformations(iReference, iDataSet, tbModel, p, output_folder, ini
   tbModel.setFileAbsolutePath(output_folder, transformed_filename, iDataSet, "Transformed_"+p['ch_ref'], "IMG")
     
   # store transformation file
-  transformation_file = os.path.join(output_folder, "transformation-"+str(moving_file.split(os.sep)[-1]+".txt"))
+  transformation_filename = "transformation-"+str(moving_file.split(os.sep)[-1])+".txt"
+  transformation_file = os.path.join(output_folder, transformation_filename)
   copy_file(os.path.join(output_folder, "TransformParameters.0.txt"), transformation_file )
+  
+  tbModel.setFileAbsolutePath(output_folder, transformation_filename, iDataSet, "Transformation", "TXT")
+  
+
          
   # store log file
   copy_file(os.path.join(output_folder, "elastix.log"), os.path.join(output_folder, "elastix-"+str(moving_file.split(os.sep)[-1]+".log")))
@@ -399,6 +425,31 @@ def compute_transformations(iReference, iDataSet, tbModel, p, output_folder, ini
   return tbModel, transformation_file, os.path.join(output_folder, transformed_filename)
 
 
+'''
+def convert_mha_to_tif(path_mha, path_tif):
+  print("    reading mha")
+  start_time = time.time()
+  IJ.openImage(path_mha)
+  print("      time elapsed: "+str(round(time.time()-start_time,3)))
+  imp = IJ.getImage()
+  IJ.run(imp, "32-bit", "");
+  IJ.setMinAndMax(0, 65535);
+  IJ.run(imp, "16-bit", "");
+  output_file = os.path.join(output_folder,original_filename+"--transformed.tif")
+  print("    writing tif")
+  start_time = time.time()
+  IJ.saveAs(imp, "Tiff", output_file)
+  print("      time elapsed: "+str(round(time.time()-start_time,3)))
+  # optional to save maximum projections
+  if(save_as_max):
+    if(imp.getStackSize()>1):
+      print("    make and save z-max")
+      start_time = time.time()
+      IJ.run(imp, "Z Project...", "projection=[Max Intensity]")
+      IJ.saveAs(IJ.getImage(), "Tiff", output_file+"--z-max.tif")
+      print("      time elapsed: "+str(round(time.time()-start_time,3)))
+  return output_file
+'''
 
 def apply_transformation(iDataSet, tbModel, p, output_folder):
 
@@ -517,12 +568,12 @@ if __name__ == '__main__':
     p_gui = {}
     # exposed to GUI
     p_gui['expose_to_gui'] = {'value': ['input_folder', 'output_folder', 'output_format', 'channels', 'ch_ref', 'reference_image_index', 'transformation', 
-                          'image_background_value', 'mask_file', 'maximum_number_of_iterations', 'image_pyramid_schedule',
+                          'image_background_value', 'mask_file', 'maximum_number_of_iterations', 'image_dimensions', 'image_pyramid_schedule',
                           'number_of_spatial_samples', 'elastix_binary_file', 'transformix_binary_file']}
     p_gui['input_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
     p_gui['output_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
-    p_gui['output_format'] = {'choices': ['mha','tif'], 'value': 'tif', 'type': 'string'}
-    p_gui['image_dimensions'] = {'choices': [2,3], 'value': 2, 'type': 'int'} 
+    p_gui['output_format'] = {'choices': ['mha','tif'], 'value': 'mha', 'type': 'string'}
+    p_gui['image_dimensions'] = {'choices': '', 'value': 3, 'type': 'int'} 
     p_gui['channels'] = {'choices': '', 'value': 'ch0,ch1', 'type': 'string'}
     p_gui['ch_ref'] = {'choices': '', 'value': 'ch0', 'type': 'string'}
     p_gui['reference_image_index'] = {'choices': '', 'value': 0, 'type': 'int'}
@@ -563,7 +614,13 @@ if __name__ == '__main__':
     p[k] = p_gui[k]['value']
   
   p['channels'] = p_gui['channels']['value'].split(",")
-
+  
+  if p['mask_file']:
+    p['image_sampler'] = 'RandomSparseMask'
+  else:
+    p['image_sampler'] = 'Random'
+  
+    
   #
   # DETERMINE INPUT FILES
   #
@@ -583,7 +640,11 @@ if __name__ == '__main__':
   
   for ch in p["channels"]:
     tbModel.addFileColumns('Transformed_'+ch,'IMG')
-    
+
+  # store transformation file path
+  tbModel.addFileColumns('Transformation','TXT')
+  
+  
   sorted_files = sorted(files)
   print("#\n# Files to be analyzed\n#")
   for ch in p["channels"]:
@@ -608,7 +669,7 @@ if __name__ == '__main__':
   #
   # Create elastix parameter file
   #
-  
+  #p['output_format'] = 'mha'
   make_parameter_file(p)
 
   #
@@ -619,7 +680,9 @@ if __name__ == '__main__':
   # backwards from reference file
   previous_trafo = ""
   previous_transformed_image = ""
+  #print("backwards")
   for i in range(p['reference_image_index'],-1,-1):
+    #print(p['reference_image_index'],i)
     # compute transformation and transform reference channel
     tbModel, previous_trafo, previous_transformed_image = compute_transformations(p['reference_image_index'], i, tbModel, p, p['output_folder'], previous_trafo, previous_transformed_image)    
     # apply transformation to all other channels
@@ -628,24 +691,33 @@ if __name__ == '__main__':
   # forward from reference file
   previous_trafo = ""
   previous_transformed_image = ""
-  for i in range(p['reference_image_index'],n_files,+1):
+  #print("forward")
+  for i in range(p['reference_image_index']+1,n_files,+1):
+    #print(p['reference_image_index'],i)
     # compute transformation and transform reference channel
     tbModel, previous_trafo, previous_transformed_image = compute_transformations(p['reference_image_index'], i, tbModel, p, p['output_folder'], previous_trafo, previous_transformed_image)    
     # apply transformation to all other channels
     tbModel = apply_transformation(i, tbModel, p, p['output_folder'])
 
-  #
-  # Smooth transformations over time
-  #
-  #if p['median_window'] > 1:
-  #  files = get_file_list(p['output_folder'], 'TransformParameters.0-(.*)')
-  #  smooth_transformation_files(files, p)
-  
-  print("done!")
 
+  #
+  # clean up
+  #
   close_all_image_windows()
   
+  #
+  # analyze transformations over time
+  #
+  p['median_window'] = 3
+  analyze_transformation_files(p, tbModel)
+  
+  #
+  # show the interactive table
+  #
   frame = ManualControlFrame(tbModel)
   frame.setVisible(True)
+
+  print("done!")
+
   
   
