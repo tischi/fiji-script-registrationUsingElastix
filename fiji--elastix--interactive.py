@@ -332,7 +332,7 @@ def make_parameter_file(p):
   '(BSplineInterpolationOrder 1)', 
   '(FinalBSplineInterpolationOrder 3)',
   '(WriteResultImage "true")',
-  '(ResultImagePixelType "short")', # adapt and check this!
+  '(ResultImagePixelType "float")', # adapt and check this!
   '(ResultImageFormat "'+p['output_format']+'")' # why not tif?
   ]
   txt = '\n'.join(txt)
