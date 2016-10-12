@@ -302,6 +302,7 @@ def make_parameter_file(p):
 
   txt = [
   '(Transform "'+p['transformation']+'")',
+  '(Registration "MultiResolutionRegistration")',
   '(NumberOfResolutions '+str(p["number_of_resolutions"])+')',
   '(ImagePyramidSchedule '+image_pyramid_schedule+')',
   '(MaximumNumberOfIterations '+str(int(p["maximum_number_of_iterations"]))+')',
@@ -314,8 +315,7 @@ def make_parameter_file(p):
   '(FixedInternalImagePixelType "float")',
   '(MovingInternalImagePixelType "float")',
   '(UseDirectionCosines "false")', # ?
-  '(Registration "MultiResolutionRegistration")',
-  '(Interpolator "LinearInterpolator")',
+  '(Interpolator "LinearInterpolator")', # NearestNeighborInterpolator, LinearInterpolator (apparently no big speed difference)
   '(ResampleInterpolator "FinalLinearInterpolator")', # Could be BSpline
   '(Resampler "DefaultResampler")',
   '(FixedImagePyramid "FixedRecursiveImagePyramid")', # check manual
@@ -406,8 +406,7 @@ def compute_transformations(iReference, iDataSet, tbModel, p, output_folder, ini
   transformed_filename = tbModel.getFileName(iDataSet, "Input_"+p["ch_ref"], "IMG")+"--transformed."+p['output_format']
   
   # secure transformed file by renaming
-  rename(elastix_output_filepath, os.path.join(output_folder, transformed_filename))
-    
+  rename(elastix_output_filepath, os.path.join(output_folder, transformed_filename))   
   tbModel.setFileAbsolutePath(output_folder, transformed_filename, iDataSet, "Transformed_"+p['ch_ref'], "IMG")
     
   # store transformation file
@@ -424,9 +423,8 @@ def compute_transformations(iReference, iDataSet, tbModel, p, output_folder, ini
 
   return tbModel, transformation_file, os.path.join(output_folder, transformed_filename)
 
-
 '''
-def convert_mha_to_tif(path_mha, path_tif):
+def convert_float_mha_to_16bit_tif(path_mha, path_tif):
   print("    reading mha")
   start_time = time.time()
   IJ.openImage(path_mha)
@@ -435,11 +433,11 @@ def convert_mha_to_tif(path_mha, path_tif):
   IJ.run(imp, "32-bit", "");
   IJ.setMinAndMax(0, 65535);
   IJ.run(imp, "16-bit", "");
-  output_file = os.path.join(output_folder,original_filename+"--transformed.tif")
   print("    writing tif")
   start_time = time.time()
-  IJ.saveAs(imp, "Tiff", output_file)
+  IJ.saveAs(imp, "Tiff", path_tif)
   print("      time elapsed: "+str(round(time.time()-start_time,3)))
+
   # optional to save maximum projections
   if(save_as_max):
     if(imp.getStackSize()>1):
@@ -470,7 +468,7 @@ def apply_transformation(iDataSet, tbModel, p, output_folder):
       tbModel.setFileAbsolutePath(output_folder, transformed_filename, iDataSet, "Transformed_"+ch, "IMG")
    
   return tbModel
-
+  
  
 #
 # ANALYZE INPUT FILES
@@ -495,6 +493,64 @@ def get_file_list(foldername, reg_exp):
 
   return(sorted(files))
 
+#
+# Create 3D mask file from coordinates 
+#
+
+def make_mask_file(p, imp):
+  
+  x_min = int(p['mask_roi'][0])
+  y_min = int(p['mask_roi'][1])
+  z_min = int(p['mask_roi'][2])
+  x_width = int(p['mask_roi'][3])
+  y_width = int(p['mask_roi'][4])
+  z_width = int(p['mask_roi'][5])
+  
+  imp_mask = imp.duplicate()
+  IJ.setBackgroundColor(0, 0, 0);
+  IJ.run(imp_mask, "Select All", "");
+  IJ.run(imp_mask, "Clear", "stack");
+  IJ.run(imp_mask, "Select None", "");
+  IJ.run(imp_mask, "8-bit", "");
+  for iSlice in range(z_min, z_min+z_width):
+    imp_mask.setSlice(iSlice)
+    ip = imp_mask.getProcessor()
+    ip.setColor(1)
+    ip.setRoi(x_min, y_min, x_width, y_width)
+    ip.fill()
+  
+  mask_filepath = os.path.join(p['output_folder'],'mask.tif')
+  IJ.saveAs(imp_mask, 'TIFF', mask_filepath)
+  return mask_filepath
+
+#
+# Ensure empty dir
+#  
+
+def ensure_empty_dir(path):
+    if os.path.isdir(path):
+        print("Removing contents of "+path)
+        for entry in os.listdir(path):
+            abspath = os.path.join(path, entry)
+            if os.path.isdir(abspath):
+                shutil.rmtree(abspath)
+            elif os.path.isfile(abspath):
+                os.remove(abspath)
+            elif os.path.lexists(abspath):
+                raise Exception(
+                    "The path already exists. " \
+                    "Please remove it manually."
+                )
+    elif os.path.isfile(path):
+        os.remove(path)
+    elif os.path.lexists(path):
+        raise Exception(
+            "The path already exists. Please remove it manually."
+        )
+    else:
+        print("Creating new folder "+path)
+        os.mkdir(path)
+        
 #
 # GET PARAMETERS
 #
@@ -550,6 +606,7 @@ if __name__ == '__main__':
   #
   # GET PARAMETERS
   #
+  
   print("#\n# Parameters\n#")
 
   #
@@ -568,7 +625,7 @@ if __name__ == '__main__':
     p_gui = {}
     # exposed to GUI
     p_gui['expose_to_gui'] = {'value': ['input_folder', 'output_folder', 'output_format', 'channels', 'ch_ref', 'reference_image_index', 'transformation', 
-                          'image_background_value', 'mask_file', 'maximum_number_of_iterations', 'image_dimensions', 'image_pyramid_schedule',
+                          'image_background_value', 'mask_file', 'mask_roi', 'maximum_number_of_iterations', 'image_dimensions', 'image_pyramid_schedule',
                           'number_of_spatial_samples', 'elastix_binary_file', 'transformix_binary_file']}
     p_gui['input_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
     p_gui['output_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
@@ -580,6 +637,7 @@ if __name__ == '__main__':
     p_gui['transformation'] = {'choices': ['TranslationTransform', 'EulerTransform', 'AffineTransform'], 'value': 'AffineTransform', 'type': 'string'}
     p_gui['image_background_value'] = {'choices': '', 'value': 16, 'type': 'int'}
     p_gui['mask_file'] = {'choices': '', 'value': '', 'type': 'file'}
+    p_gui['mask_roi'] = {'choices': '', 'value': '10,10,10,100,100,100', 'type': 'string'}
     p_gui['maximum_number_of_iterations'] = {'choices': '', 'value': 500, 'type': 'int'}
     p_gui['image_pyramid_schedule'] = {'choices': '', 'value': '16,4', 'type': 'string'}
     p_gui['number_of_spatial_samples'] = {'choices': '', 'value': 1000, 'type': 'int'}    
@@ -600,8 +658,16 @@ if __name__ == '__main__':
   p_gui['elastix_parameter_file'] = {'value': os.path.join(p_gui['output_folder']['value'], 'elastix-parameters.txt')}
   
   #
+  # Create output folder if it does not exist
+  #
+  
+  ensure_empty_dir(p_gui['output_folder']['value'])
+  
+  
+  #
   # Save gui parameters
   #
+  
   f = open(os.path.join(p_gui['output_folder']['value'], 'fiji-elastix-gui-parameters.txt'), 'w')
   pickle.dump(p_gui, f)
   f.close()
@@ -614,6 +680,7 @@ if __name__ == '__main__':
     p[k] = p_gui[k]['value']
   
   p['channels'] = p_gui['channels']['value'].split(",")
+  p['mask_roi'] = p_gui['mask_roi']['value'].split(",")
   
   if p['mask_file']:
     p['image_sampler'] = 'RandomSparseMask'
@@ -667,9 +734,21 @@ if __name__ == '__main__':
   print("#\n# Analysis\n#")
 
   #
+  # Load reference file to determine some parameters
+  #
+
+  imp = IJ.openImage(tbModel.getFileAbsolutePathString(p['reference_image_index'], "Input_"+p['ch_ref'], "IMG"))
+  imp.show()
+  
+  #
+  # Create mask file
+  #
+  if (not p['mask_file']) and (p['mask_roi'][0]):
+    p['mask_file'] = make_mask_file(p, imp) 
+
+  #
   # Create elastix parameter file
   #
-  #p['output_format'] = 'mha'
   make_parameter_file(p)
 
   #
