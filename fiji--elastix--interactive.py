@@ -423,31 +423,6 @@ def compute_transformations(iReference, iDataSet, tbModel, p, output_folder, ini
 
   return tbModel, transformation_file, os.path.join(output_folder, transformed_filename)
 
-'''
-def convert_float_mha_to_16bit_tif(path_mha, path_tif):
-  print("    reading mha")
-  start_time = time.time()
-  IJ.openImage(path_mha)
-  print("      time elapsed: "+str(round(time.time()-start_time,3)))
-  imp = IJ.getImage()
-  IJ.run(imp, "32-bit", "");
-  IJ.setMinAndMax(0, 65535);
-  IJ.run(imp, "16-bit", "");
-  print("    writing tif")
-  start_time = time.time()
-  IJ.saveAs(imp, "Tiff", path_tif)
-  print("      time elapsed: "+str(round(time.time()-start_time,3)))
-
-  # optional to save maximum projections
-  if(save_as_max):
-    if(imp.getStackSize()>1):
-      print("    make and save z-max")
-      start_time = time.time()
-      IJ.run(imp, "Z Project...", "projection=[Max Intensity]")
-      IJ.saveAs(IJ.getImage(), "Tiff", output_file+"--z-max.tif")
-      print("      time elapsed: "+str(round(time.time()-start_time,3)))
-  return output_file
-'''
 
 def apply_transformation(iDataSet, tbModel, p, output_folder):
 
@@ -494,17 +469,25 @@ def get_file_list(foldername, reg_exp):
   return(sorted(files))
 
 #
+# Logging
+#
+
+
+def log(txt):
+  IJ.log(txt)
+
+#
 # Create 3D mask file from coordinates 
 #
 
 def make_mask_file(p, imp):
   
-  x_min = int(p['mask_roi'][0])
-  y_min = int(p['mask_roi'][1])
-  z_min = int(p['mask_roi'][2])
-  x_width = int(p['mask_roi'][3])
-  y_width = int(p['mask_roi'][4])
-  z_width = int(p['mask_roi'][5])
+  x_min = p['mask_roi'][0]
+  y_min = p['mask_roi'][1]
+  z_min = p['mask_roi'][2]
+  x_width = p['mask_roi'][3]
+  y_width = p['mask_roi'][4]
+  z_width = p['mask_roi'][5]
   
   imp_mask = imp.duplicate()
   IJ.setBackgroundColor(0, 0, 0);
@@ -567,7 +550,7 @@ def get_parameters(p):
       if p[k]['choices']:
         gd.addChoice(k, p[k]['choices'], p[k]['value'])	
       else:
-        gd.addStringField(k, p[k]['value'])	 
+        gd.addStringField(k, p[k]['value'], 50)	 
     elif p[k]['type'] == 'int':
       if p[k]['choices']:
         gd.addChoice(k, p[k]['choices'], p[k]['value'])	
@@ -578,7 +561,7 @@ def get_parameters(p):
   
   gd.showDialog()
   if gd.wasCanceled():
-    return
+    return(0)
 
   for k in p['expose_to_gui']['value']:
     if p[k]['type'] == 'folder' or p[k]['type'] == 'file':
@@ -596,23 +579,17 @@ def get_parameters(p):
     elif p[k]['type'] == 'float':
         p[k]['value'] = gd.getNextNumber()
     
-  return p
+  return(p)
 
     
 if __name__ == '__main__':
 
-  print("#\n# Elastix registration\n#")
+  log("#\n# Elastix registration\n#")
     
   #
   # GET PARAMETERS
   #
   
-  print("#\n# Parameters\n#")
-
-  #
-  # Load gui parameters
-  #
-
   od = OpenDialog("Select parameter file (press CANCEL if you don't have one)", None)
   f = od.getPath()
   
@@ -625,22 +602,22 @@ if __name__ == '__main__':
     p_gui = {}
     # exposed to GUI
     p_gui['expose_to_gui'] = {'value': ['input_folder', 'output_folder', 'output_format', 'channels', 'ch_ref', 'reference_image_index', 'transformation', 
-                          'image_background_value', 'mask_file', 'mask_roi', 'maximum_number_of_iterations', 'image_dimensions', 'image_pyramid_schedule',
+                          'image_background_value', 'mask_file', 'mask_roi', 'maximum_number_of_iterations', 'image_pyramid_schedule',
                           'number_of_spatial_samples', 'elastix_binary_file', 'transformix_binary_file']}
     p_gui['input_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
     p_gui['output_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
-    p_gui['output_format'] = {'choices': ['mha','tif'], 'value': 'mha', 'type': 'string'}
+    p_gui['output_format'] = {'choices': ['mha'], 'value': 'mha', 'type': 'string'}
     p_gui['image_dimensions'] = {'choices': '', 'value': 3, 'type': 'int'} 
-    p_gui['channels'] = {'choices': '', 'value': 'ch0,ch1', 'type': 'string'}
+    p_gui['channels'] = {'choices': '', 'value': 'ch0', 'type': 'string'}
     p_gui['ch_ref'] = {'choices': '', 'value': 'ch0', 'type': 'string'}
     p_gui['reference_image_index'] = {'choices': '', 'value': 0, 'type': 'int'}
-    p_gui['transformation'] = {'choices': ['TranslationTransform', 'EulerTransform', 'AffineTransform'], 'value': 'AffineTransform', 'type': 'string'}
-    p_gui['image_background_value'] = {'choices': '', 'value': 16, 'type': 'int'}
+    p_gui['transformation'] = {'choices': ['TranslationTransform', 'EulerTransform', 'AffineTransform'], 'value': 'TranslationTransform', 'type': 'string'}
+    p_gui['image_background_value'] = {'choices': '', 'value': 'minimum_of_reference_image', 'type': 'string'}
     p_gui['mask_file'] = {'choices': '', 'value': '', 'type': 'file'}
     p_gui['mask_roi'] = {'choices': '', 'value': '10,10,10,100,100,100', 'type': 'string'}
-    p_gui['maximum_number_of_iterations'] = {'choices': '', 'value': 500, 'type': 'int'}
-    p_gui['image_pyramid_schedule'] = {'choices': '', 'value': '16,4', 'type': 'string'}
-    p_gui['number_of_spatial_samples'] = {'choices': '', 'value': 1000, 'type': 'int'}    
+    p_gui['maximum_number_of_iterations'] = {'choices': '', 'value': 100, 'type': 'int'}
+    p_gui['image_pyramid_schedule'] = {'choices': '', 'value': '1', 'type': 'string'}
+    p_gui['number_of_spatial_samples'] = {'choices': '', 'value': 'auto', 'type': 'string'}    
     p_gui['elastix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\elastix', 'type': 'file'}
     p_gui['transformix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\transformix', 'type': 'file'}
     p_gui['number_of_resolutions'] = {'value': ''}
@@ -650,7 +627,10 @@ if __name__ == '__main__':
   # Expose parameters to users
   #
   p_gui = get_parameters(p_gui)
-  
+  if not p_gui:
+    log("Dialog was cancelled")
+    ddd
+    
   #
   # Create derived paramters
   #
@@ -662,8 +642,7 @@ if __name__ == '__main__':
   #
   
   ensure_empty_dir(p_gui['output_folder']['value'])
-  
-  
+   
   #
   # Save gui parameters
   #
@@ -673,20 +652,15 @@ if __name__ == '__main__':
   f.close()
    
   #
-  # Reformat gui parameters for actual usage
+  # Reformat gui parameters into actual parameters
   # 
+  
   p = {}
   for k in p_gui.keys():
     p[k] = p_gui[k]['value']
   
-  p['channels'] = p_gui['channels']['value'].split(",")
-  p['mask_roi'] = p_gui['mask_roi']['value'].split(",")
-  
-  if p['mask_file']:
-    p['image_sampler'] = 'RandomSparseMask'
-  else:
-    p['image_sampler'] = 'Random'
-  
+  p['channels'] = p_gui['channels']['value'].split(","); p['channels'] = map(str, p['channels'])
+  p['mask_roi'] = p_gui['mask_roi']['value'].split(","); p['mask_roi'] = map(int, p['mask_roi'])  
     
   #
   # DETERMINE INPUT FILES
@@ -695,7 +669,6 @@ if __name__ == '__main__':
   tbModel = TableModel(p['input_folder'])
   files = get_file_list(p['input_folder'], '(.*).tif')
   
-
   #
   # INIT INTERACTIVE TABLE
   #
@@ -724,31 +697,73 @@ if __name__ == '__main__':
         tbModel.setFileAbsolutePath(afile, iDataSet, "Input_"+ch,"IMG")
         iDataSet = iDataSet + 1
 
-  #frame=ManualControlFrame(tbModel)
-  #frame.setVisible(True)
+  frame=ManualControlFrame(tbModel)
+  frame.setVisible(True)
   
+  #
+  # Inspect reference image file to determine some of the parameters and create a mask file
+  #
+  print(p['reference_image_index'])
+  p['reference_image'] = tbModel.getFileAbsolutePathString(p['reference_image_index'], "Input_"+p['ch_ref'], "IMG")
+  imp = IJ.openImage(p['reference_image'])
   
-  #
-  # ANALYZE
-  #
-  print("#\n# Analysis\n#")
-
-  #
-  # Load reference file to determine some parameters
-  #
-
-  imp = IJ.openImage(tbModel.getFileAbsolutePathString(p['reference_image_index'], "Input_"+p['ch_ref'], "IMG"))
-  imp.show()
+  stats = StackStatistics(imp)
+  if p['image_background_value'] == 'minimum_of_reference_image':
+    p['image_background_value'] = stats.min
+  else:
+    p['image_background_value'] = int(p['image_background_value'])
+  p['image_dimensions'] = imp.getNDimensions()
+  p['voxels_in_image'] = stats.longPixelCount
   
   #
   # Create mask file
   #
+  
   if (not p['mask_file']) and (p['mask_roi'][0]):
     p['mask_file'] = make_mask_file(p, imp) 
+ 
+  if p['mask_file']:
+    imp_mask = IJ.openImage(p['mask_file'])
+    stats = StackStatistics(imp_mask)
+    p['voxels_in_mask'] = int(stats.mean * stats.longPixelCount)
+  else:
+    p['voxels_in_mask'] = 'no mask'
+    
+  if p['mask_file']:
+    p['image_sampler'] = 'RandomSparseMask'
+  else:
+    p['image_sampler'] = 'Random'
 
+  #
+  # Close images
+  #
+  
+  imp.close()
+  imp_mask.close() 
+
+  #
+  # Number of spatial samples
+  #
+
+  if p['number_of_spatial_samples'] == 'auto':
+    if p['voxels_in_mask'] == 'no mask':
+      p['number_of_spatial_samples'] = int(min(3000, p['voxels_in_image']))
+    else:
+      p['number_of_spatial_samples'] = int(min(3000, p['voxels_in_mask']))
+  else:
+    p['number_of_spatial_samples'] = int(p['number_of_spatial_samples'])
+  
+  #
+  # Log actual paramters 
+  #
+
+  for k in p.keys():
+    log(k+": "+str(p[k]))
+  
   #
   # Create elastix parameter file
   #
+  
   make_parameter_file(p)
 
   #
