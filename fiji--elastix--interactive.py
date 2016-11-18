@@ -581,8 +581,15 @@ def get_parameters(p):
     
   return(p)
 
-    
-if __name__ == '__main__':
+def get_os_version():
+    ver = sys.platform.lower()
+    if ver.startswith('java'):
+        import java.lang
+        ver = java.lang.System.getProperty("os.name").lower()
+    return ver
+
+
+def run():
 
   log("#\n# Elastix registration\n#")
     
@@ -604,8 +611,14 @@ if __name__ == '__main__':
     p_gui['expose_to_gui'] = {'value': ['input_folder', 'output_folder', 'output_format', 'channels', 'ch_ref', 'reference_image_index', 'transformation', 
                           'image_background_value', 'mask_file', 'mask_roi', 'maximum_number_of_iterations', 'image_pyramid_schedule',
                           'number_of_spatial_samples', 'elastix_binary_file', 'transformix_binary_file']}
-    p_gui['input_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
-    p_gui['output_folder'] = {'choices': '', 'value': 'C:\\Users\\tischer\\Documents', 'type': 'folder'}
+    
+    if(get_os_version() == "windows 10"): 
+      p_gui['input_folder'] = {'choices': '', 'value': 'C:\\Users', 'type': 'folder'}
+      p_gui['output_folder'] = {'choices': '', 'value': 'C:\\Users', 'type': 'folder'}
+    elif (get_os_version() == "linux"):
+      p_gui['input_folder'] = {'choices': '', 'value': '/g/almfspim', 'type': 'folder'}
+      p_gui['output_folder'] = {'choices': '', 'value': '/g/almfspim', 'type': 'folder'}
+    
     p_gui['output_format'] = {'choices': ['mha'], 'value': 'mha', 'type': 'string'}
     p_gui['image_dimensions'] = {'choices': '', 'value': 3, 'type': 'int'} 
     p_gui['channels'] = {'choices': '', 'value': 'ch0', 'type': 'string'}
@@ -618,8 +631,14 @@ if __name__ == '__main__':
     p_gui['maximum_number_of_iterations'] = {'choices': '', 'value': 100, 'type': 'int'}
     p_gui['image_pyramid_schedule'] = {'choices': '', 'value': '1', 'type': 'string'}
     p_gui['number_of_spatial_samples'] = {'choices': '', 'value': 'auto', 'type': 'string'}    
-    p_gui['elastix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\elastix', 'type': 'file'}
-    p_gui['transformix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\transformix', 'type': 'file'}
+
+    if(get_os_version() == "windows 10"): 
+      p_gui['elastix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\elastix', 'type': 'file'}
+      p_gui['transformix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\transformix', 'type': 'file'}
+    elif (get_os_version() == "linux"):
+      p_gui['elastix_binary_file'] = {'choices': '', 'value': '/g/almf/software/bin/run_elastix.sh', 'type': 'file'}
+      p_gui['transformix_binary_file'] = {'choices': '', 'value': '/g/almf/software/bin/run_transformix.sh', 'type': 'file'}
+      
     p_gui['number_of_resolutions'] = {'value': ''}
     p_gui['elastix_parameter_file'] = {'value': ''}
 
@@ -629,7 +648,7 @@ if __name__ == '__main__':
   p_gui = get_parameters(p_gui)
   if not p_gui:
     log("Dialog was cancelled")
-    ddd
+    return
     
   #
   # Create derived paramters
@@ -814,4 +833,5 @@ if __name__ == '__main__':
   print("done!")
 
   
-  
+if __name__ == '__main__':
+  run()
