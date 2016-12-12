@@ -304,7 +304,7 @@ def make_parameter_file(p):
   txt = [
   '(Transform "'+p['transformation']+'")',
   '(Registration "MultiResolutionRegistration")',
-  '(NumberOfResolutions '+str(p["number_of_resolutions"])+')',
+  #'(NumberOfResolutions '+str(p["number_of_resolutions"])+')',
   '(ImagePyramidSchedule '+image_pyramid_schedule+')',
   '(MaximumNumberOfIterations '+str(int(p["maximum_number_of_iterations"]))+')',
   '(NumberOfSpatialSamples '+str(p["number_of_spatial_samples"])+')',
@@ -319,14 +319,17 @@ def make_parameter_file(p):
   '(Interpolator "LinearInterpolator")', # NearestNeighborInterpolator, LinearInterpolator (apparently no big speed difference)
   '(ResampleInterpolator "FinalLinearInterpolator")', # Could be BSpline
   '(Resampler "DefaultResampler")',
-  '(FixedImagePyramid "FixedRecursiveImagePyramid")', # check manual
-  '(MovingImagePyramid "MovingRecursiveImagePyramid")', # check manual
+  '(FixedImagePyramid "FixedSmoothingImagePyramid")', #'(FixedImagePyramid "FixedRecursiveImagePyramid")', # check manual
+  '(MovingImagePyramid "MovingSmoothingImagePyramid")', # check manual
   '(Optimizer "AdaptiveStochasticGradientDescent")',
+  '(AutomaticParameterEstimation "true")',
+  '(MaximumStepLength '+str(p['maximum_step_length'])+')',
+  #'(SP_a 100)',
   '(Metric "AdvancedMeanSquares")',
   '(AutomaticScalesEstimation "true")',
   '(AutomaticTransformInitialization "false")',  # better false as this might fail
   '(HowToCombineTransforms "Compose")',
-  '(NumberOfHistogramBins 32)',
+  #'(NumberOfHistogramBins 32)',
   '(ErodeMask "false")',
   '(NewSamplesEveryIteration "true")',
   '(ImageSampler "'+p['image_sampler']+'")', # '(ImageSampler "Random")'RandomSparseMask
@@ -691,7 +694,11 @@ def run():
       
   tbModel = TableModel(p['input_folder'])
   files = get_file_list(p['input_folder'], '(.*).tif')
-  
+
+  if p['reference_image_index'] > len(files):
+  	IJ.showMessage("Your reference image index is larger than the number of files in the folder; exiting.");
+  	return
+  	
   #
   # INIT INTERACTIVE TABLE
   #
@@ -726,6 +733,7 @@ def run():
   #
   # Inspect reference image file to determine some of the parameters and create a mask file
   #
+  
   print(p['reference_image_index'])
   p['reference_image'] = tbModel.getFileAbsolutePathString(p['reference_image_index'], "Input_"+p['ch_ref'], "IMG")
   imp = IJ.openImage(p['reference_image'])
@@ -737,6 +745,9 @@ def run():
     p['image_background_value'] = int(p['image_background_value'])
   p['image_dimensions'] = imp.getNDimensions()
   p['voxels_in_image'] = stats.longPixelCount
+
+  p['maximum_step_length'] = int(imp.getWidth()/10)
+
   
   #
   # Create mask file
@@ -756,7 +767,7 @@ def run():
   if p['mask_file']:
     p['image_sampler'] = 'RandomSparseMask'
   else:
-    p['image_sampler'] = 'Random'
+    p['image_sampler'] = 'RandomCoordinate'
 
   #
   # Close images
