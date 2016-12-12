@@ -27,6 +27,7 @@ This repository conatins a Fiji script to run elastix registration algorithms; F
 
 ### usage notes and tips
 
+- the output folder must be created outside the input folder, otherwise the software gets confused.
 - the reference_image_index is used to determine the reference file (counting from 0 using the python sort() command on the image filenames)
 - using a Mask file is usually improving the results; one good way to make one is to blur and threshold the reference image; the values in the mask image need to be 0 and 1(not 255!)
 - elastix seems to use signed-integers; thus one needs to use float for real 16bit images 
