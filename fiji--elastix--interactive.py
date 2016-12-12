@@ -189,18 +189,19 @@ def analyze_transformation_files(p, tbModel):
    
   write_vector_to_tab_delimited_file(transformations, os.path.join(p['output_folder'],'transformation_parameters.txt'))
     
-  for i in range(len(transformations[0])-2):
-    trafo = [float(t[i]) for t in transformations]
-    #write_vector_to_file(trafo, os.path.join(p['output_folder'],'transformation_parameter_'+str(i)+".txt"))
-    scatter_plot('trafo', range(len(trafo)), trafo, 'frame', 't'+str(i))
-    #
-    # apply some smoothing to the transformations
-    #
-    #median_trafo = running_median(trafo, p['median_window'])
-    #write_vector_to_file(median_trafo, os.path.join(p['output_folder'],'transformation_parameter_median_'+str(i)+".txt"))
-    #scatter_plot('trafo_median', range(len(trafo)),  median_trafo, 'frame', 't'+str(i))
-    #for j in range(len(trafo)):
-    #  transformations[j][i] = median_trafo[j]
+  if 0:
+    for i in range(len(transformations[0])-2):
+      trafo = [float(t[i]) for t in transformations]
+      #write_vector_to_file(trafo, os.path.join(p['output_folder'],'transformation_parameter_'+str(i)+".txt"))
+      scatter_plot('trafo', range(len(trafo)), trafo, 'frame', 't'+str(i))
+      #
+      # apply some smoothing to the transformations
+      #
+      #median_trafo = running_median(trafo, p['median_window'])
+      #write_vector_to_file(median_trafo, os.path.join(p['output_folder'],'transformation_parameter_median_'+str(i)+".txt"))
+      #scatter_plot('trafo_median', range(len(trafo)),  median_trafo, 'frame', 't'+str(i))
+      #for j in range(len(trafo)):
+      #  transformations[j][i] = median_trafo[j]
 
   #for i, fn in enumerate(files):
   #  transformation_line = " ".join('%.10f' % x for x  in transformations[i])
@@ -679,8 +680,11 @@ def run():
     p[k] = p_gui[k]['value']
   
   p['channels'] = p_gui['channels']['value'].split(","); p['channels'] = map(str, p['channels'])
-  p['mask_roi'] = p_gui['mask_roi']['value'].split(","); p['mask_roi'] = map(int, p['mask_roi'])  
-    
+  if  p_gui['mask_roi']['value']:
+  	p['mask_roi'] = p_gui['mask_roi']['value'].split(","); p['mask_roi'] = map(int, p['mask_roi'])  
+  else:
+    p['mask_roi'] = None
+  
   #
   # DETERMINE INPUT FILES
   #
@@ -737,10 +741,11 @@ def run():
   #
   # Create mask file
   #
+
+  if p['mask_roi']:
+    if not p['mask_file']:
+      p['mask_file'] = make_mask_file(p, imp) 
   
-  if (not p['mask_file']) and (p['mask_roi'][0]):
-    p['mask_file'] = make_mask_file(p, imp) 
- 
   if p['mask_file']:
     imp_mask = IJ.openImage(p['mask_file'])
     stats = StackStatistics(imp_mask)
@@ -758,7 +763,8 @@ def run():
   #
   
   imp.close()
-  imp_mask.close() 
+  if p['mask_file']:
+    imp_mask.close() 
 
   #
   # Number of spatial samples
