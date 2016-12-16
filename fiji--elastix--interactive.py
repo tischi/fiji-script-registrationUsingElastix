@@ -304,7 +304,7 @@ def make_parameter_file(p):
   txt = [
   '(Transform "'+p['transformation']+'")',
   '(Registration "MultiResolutionRegistration")',
-  #'(NumberOfResolutions '+str(p["number_of_resolutions"])+')',
+  '(NumberOfResolutions '+str(p["number_of_resolutions"])+')',
   '(ImagePyramidSchedule '+image_pyramid_schedule+')',
   '(MaximumNumberOfIterations '+str(int(p["maximum_number_of_iterations"]))+')',
   '(NumberOfSpatialSamples '+str(p["number_of_spatial_samples"])+')',
@@ -322,12 +322,14 @@ def make_parameter_file(p):
   '(FixedImagePyramid "FixedSmoothingImagePyramid")', #'(FixedImagePyramid "FixedRecursiveImagePyramid")', # check manual
   '(MovingImagePyramid "MovingSmoothingImagePyramid")', # check manual
   '(Optimizer "AdaptiveStochasticGradientDescent")',
+  '(ShowExactMetricValue "true")',
   '(AutomaticParameterEstimation "true")',
   '(MaximumStepLength '+str(p['maximum_step_length'])+')',
   #'(SP_a 100)',
   '(Metric "AdvancedMeanSquares")',
   '(AutomaticScalesEstimation "true")',
-  '(AutomaticTransformInitialization "false")',  # better false as this might fail
+  '(AutomaticTransformInitialization "true")',  # this is not used if an initial transformation is provided
+  '(AutomaticTransformInitializationMethod "CenterOfGravity")',
   '(HowToCombineTransforms "Compose")',
   #'(NumberOfHistogramBins 32)',
   '(ErodeMask "false")',
@@ -694,10 +696,6 @@ def run():
       
   tbModel = TableModel(p['input_folder'])
   files = get_file_list(p['input_folder'], '(.*).tif')
-
-  if p['reference_image_index'] > len(files):
-  	IJ.showMessage("Your reference image index is larger than the number of files in the folder; exiting.");
-  	return
   	
   #
   # INIT INTERACTIVE TABLE
@@ -728,13 +726,22 @@ def run():
         iDataSet = iDataSet + 1
 
   frame=ManualControlFrame(tbModel)
-  frame.setVisible(True)
+  #frame.setVisible(True)
   
   #
   # Inspect reference image file to determine some of the parameters and create a mask file
   #
   
   print(p['reference_image_index'])
+  print(tbModel.getRowCount())
+  if p['reference_image_index'] > tbModel.getRowCount():
+  	IJ.showMessage("Your reference image index is larger than the number of valid files in the selected folder.\n" +
+  	"Possible reasons could be:\n" +
+  	"- the (case-sensitive) spelling of your channels is not correct and no files could be found \n" +
+  	"- you typed a too high number for the reference image ID; please note that the ID is zero-based => if you have 74 images in the folder the highest ID is 73 and the lowest is 0"
+  	);
+  	return
+  
   p['reference_image'] = tbModel.getFileAbsolutePathString(p['reference_image_index'], "Input_"+p['ch_ref'], "IMG")
   imp = IJ.openImage(p['reference_image'])
   
@@ -746,7 +753,7 @@ def run():
   p['image_dimensions'] = imp.getNDimensions()
   p['voxels_in_image'] = stats.longPixelCount
 
-  p['maximum_step_length'] = int(imp.getWidth()/10)
+  p['maximum_step_length'] = max(1, int(imp.getWidth()/500))
 
   
   #
@@ -783,9 +790,9 @@ def run():
 
   if p['number_of_spatial_samples'] == 'auto':
     if p['voxels_in_mask'] == 'no mask':
-      p['number_of_spatial_samples'] = int(min(3000, p['voxels_in_image']))
+      p['number_of_spatial_samples'] = int(min(10000, p['voxels_in_image']))
     else:
-      p['number_of_spatial_samples'] = int(min(3000, p['voxels_in_mask']))
+      p['number_of_spatial_samples'] = int(min(10000, p['voxels_in_mask']))
   else:
     p['number_of_spatial_samples'] = int(p['number_of_spatial_samples'])
   
@@ -812,8 +819,8 @@ def run():
   previous_transformed_image = ""
   #print("backwards")
   for i in range(p['reference_image_index'],-1,-1):
-    #print(p['reference_image_index'],i)
     # compute transformation and transform reference channel
+    previous_trafo = ""
     tbModel, previous_trafo, previous_transformed_image = compute_transformations(p['reference_image_index'], i, tbModel, p, p['output_folder'], previous_trafo, previous_transformed_image)    
     # apply transformation to all other channels
     tbModel = apply_transformation(i, tbModel, p, p['output_folder'])
@@ -823,8 +830,8 @@ def run():
   previous_transformed_image = ""
   #print("forward")
   for i in range(p['reference_image_index']+1,n_files,+1):
-    #print(p['reference_image_index'],i)
     # compute transformation and transform reference channel
+    previous_trafo = ""
     tbModel, previous_trafo, previous_transformed_image = compute_transformations(p['reference_image_index'], i, tbModel, p, p['output_folder'], previous_trafo, previous_transformed_image)    
     # apply transformation to all other channels
     tbModel = apply_transformation(i, tbModel, p, p['output_folder'])
