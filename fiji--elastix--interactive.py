@@ -618,9 +618,13 @@ def run():
                           'image_background_value', 'mask_file', 'mask_roi', 'maximum_number_of_iterations', 'image_pyramid_schedule',
                           'number_of_spatial_samples', 'elastix_binary_file', 'transformix_binary_file']}
     
+    IJ.log("Operating system: "+get_os_version())
     if(get_os_version() == "windows 10"): 
       p_gui['input_folder'] = {'choices': '', 'value': 'C:\\Users', 'type': 'folder'}
       p_gui['output_folder'] = {'choices': '', 'value': 'C:\\Users', 'type': 'folder'}
+    elif (get_os_version() == "mac os x"):
+      p_gui['input_folder'] = {'choices': '', 'value': '/Users/tischi/Documents/fiji-registration/example-data/2d-affine/', 'type': 'folder'}
+      p_gui['output_folder'] = {'choices': '', 'value': '/Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/', 'type': 'folder'}
     elif (get_os_version() == "linux"):
       p_gui['input_folder'] = {'choices': '', 'value': '/g/almfspim', 'type': 'folder'}
       p_gui['output_folder'] = {'choices': '', 'value': '/g/almfspim', 'type': 'folder'}
@@ -641,6 +645,9 @@ def run():
     if(get_os_version() == "windows 10"): 
       p_gui['elastix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\elastix', 'type': 'file'}
       p_gui['transformix_binary_file'] = {'choices': '', 'value': 'C:\\Program Files\\elastix_v4.8\\transformix', 'type': 'file'}
+    elif (get_os_version() == "mac os x"):
+      p_gui['elastix_binary_file'] = {'choices': '', 'value': '/Users/tischi/Downloads/elastix_macosx64_v4.8/bin/elastix', 'type': 'file'}
+      p_gui['transformix_binary_file'] = {'choices': '', 'value': '/Users/tischi/Downloads/elastix_macosx64_v4.8/bin/transformix', 'type': 'file'}
     elif (get_os_version() == "linux"):
       p_gui['elastix_binary_file'] = {'choices': '', 'value': '/g/almf/software/bin/run_elastix.sh', 'type': 'file'}
       p_gui['transformix_binary_file'] = {'choices': '', 'value': '/g/almf/software/bin/run_transformix.sh', 'type': 'file'}
@@ -693,7 +700,13 @@ def run():
   #
   # DETERMINE INPUT FILES
   #
-      
+
+  print(p['input_folder'])
+  
+  if not ( os.path.exists(p['input_folder']) ):
+  	IJ.showMessage("The selected input folder doesn't seem to exist.\nPlease check the spelling.");
+  	return;
+  	
   tbModel = TableModel(p['input_folder'])
   files = get_file_list(p['input_folder'], '(.*).tif')
   	
@@ -725,6 +738,11 @@ def run():
         tbModel.setFileAbsolutePath(afile, iDataSet, "Input_"+ch,"IMG")
         iDataSet = iDataSet + 1
 
+  # have any files been found?
+  if( iDataSet == 0 ):
+  	IJ.showMessage("No matching file could be found; maybe the selected channels are incorrect?!");
+  	return;
+  		
   frame=ManualControlFrame(tbModel)
   #frame.setVisible(True)
   

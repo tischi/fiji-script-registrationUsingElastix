@@ -1,223 +1,97 @@
 
-elastix is started at Mon Aug 01 10:44:27 2016.
+elastix is started at Mon Feb 20 10:03:35 2017.
 
-which elastix:   C:\Program Files\elastix_v4.8\elastix
-elastix runs at: hor-m6004
-  Windows  Professional (x64),  (Build 9200)
-  with 131071 MB memory, and 1 cores @ 2299 MHz.
+which elastix:   /Users/tischi/Downloads/elastix_macosx64_v4.8/bin/elastix
+elastix runs at: Christians-MacBook-Air-2.local
+  Mac OS X 10.10.5 (x64), 14F1912
+  with 4096 MB memory, and 2 cores @ 1700 MHz.
 -------------------------------------------------------------------------
 
-Running elastix with parameter file 0: "C:\Users\tischer\Downloads\fiji-registration-master\fiji-registration-master\parameters_Affine.txt".
+Running elastix with parameter file 0: "/Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/elastix-parameters.txt".
 
-Current time: Mon Aug 01 10:44:27 2016.
+Current time: Mon Feb 20 10:03:35 2017.
 Reading the elastix parameters from file ...
 
 Unsupported -priority value. Specify one of <high, abovenormal, normal, belownormal, idle, ''>.
 Installing all components.
 InstallingComponents was successful.
 
+ERROR: OpenCL-enabled device is not present!
+OpenCL processing is disabled.
 ELASTIX version: 4.800
 Command line options from ElastixBase:
--f        C:\Users\tischer\Downloads\fiji-registration-master\fiji-registration-master\example-data\2d-affine--fiji\fixed.mha
--m        C:\Users\tischer\Downloads\fiji-registration-master\fiji-registration-master\example-data\2d-affine\ch0-0004.tif
+-f        /Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/ch0-0003.tif--transformed.mha
+-m        /Users/tischi/Documents/fiji-registration/example-data/2d-affine/ch0-0004.tif
 -fMask    unspecified, so no fixed mask used
 -mMask    unspecified, so no moving mask used
--out      C:\Users\tischer\Downloads\fiji-registration-master\fiji-registration-master\example-data\2d-affine--fiji\
--p        C:\Users\tischer\Downloads\fiji-registration-master\fiji-registration-master\parameters_Affine.txt
--priority HIGH
+-out      /Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/
+-p        /Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/elastix-parameters.txt
 -threads  unspecified, so all available threads are used
 Command line options from TransformBase:
--t0       C:\Users\tischer\Downloads\fiji-registration-master\fiji-registration-master\example-data\2d-affine--fiji\transformation-ch0-0005.tif.txt
+-t0       unspecified, so no initial transform used
 
-=============== start of ParameterFile: C:\Users\tischer\Downloads\fiji-registration-master\fiji-registration-master\parameters_Affine.txt ===============
-// Example parameter file for affine registration
-// C-style comments: //
-
-// The internal pixel type, used for internal computations
-// Leave to float in general. 
-// NB: this is not the type of the input images! The pixel 
-// type of the input images is automatically read from the 
-// images themselves.
-// This setting can be changed to "short" to save some memory
-// in case of very large 3D images.
+=============== start of ParameterFile: /Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/elastix-parameters.txt ===============
+(Transform "TranslationTransform")
+(Registration "MultiResolutionRegistration")
+(NumberOfResolutions 1)
+(ImagePyramidSchedule 1 1 )
+(MaximumNumberOfIterations 100)
+(NumberOfSpatialSamples 10000)
+(DefaultPixelValue 2.0)
+(WriteTransformParametersEachIteration "false")
+(WriteTransformParametersEachResolution "false")
+(WriteResultImageAfterEachResolution "false")
+(WritePyramidImagesAfterEachResolution "false")
 (FixedInternalImagePixelType "float")
 (MovingInternalImagePixelType "float")
-
-// The dimensions of the fixed and moving image
-// Up to elastix 4.5 this had to be specified by the user.
-// From elastix 4.6, this is not necessary anymore.
-//(FixedImageDimension 2)
-//(MovingImageDimension 2)
-
-// Specify whether you want to take into account the so-called
-// direction cosines of the images. Recommended: true.
-// In some cases, the direction cosines of the image are corrupt,
-// due to image format conversions for example. In that case, you 
-// may want to set this option to "false".
-(UseDirectionCosines "true")
-
-// **************** Main Components **************************
-
-// The following components should usually be left as they are:
-(Registration "MultiResolutionRegistration")
-(Interpolator "BSplineInterpolator")
-(ResampleInterpolator "FinalBSplineInterpolator")
+(UseDirectionCosines "false")
+(Interpolator "LinearInterpolator")
+(ResampleInterpolator "FinalLinearInterpolator")
 (Resampler "DefaultResampler")
-
-// These may be changed to Fixed/MovingSmoothingImagePyramid.
-// See the manual.
-(FixedImagePyramid "FixedRecursiveImagePyramid")
-(MovingImagePyramid "MovingRecursiveImagePyramid")
-
-// The following components are most important:
-// The optimizer AdaptiveStochasticGradientDescent (ASGD) works
-// quite ok in general. The Transform and Metric are important
-// and need to be chosen careful for each application. See manual.
+(FixedImagePyramid "FixedSmoothingImagePyramid")
+(MovingImagePyramid "MovingSmoothingImagePyramid")
 (Optimizer "AdaptiveStochasticGradientDescent")
-(Transform "AffineTransform")
+(ShowExactMetricValue "true")
+(AutomaticParameterEstimation "true")
+(MaximumStepLength 1)
 (Metric "AdvancedMeanSquares")
-//(Metric "AdvancedMattesMutualInformation")
-
-
-// ***************** Transformation **************************
-
-// Scales the affine matrix elements compared to the translations, to make
-// sure they are in the same range. In general, it's best to  
-// use automatic scales estimation:
 (AutomaticScalesEstimation "true")
-
-// Automatically guess an initial translation by aligning the
-// geometric centers of the fixed and moving.
-(AutomaticTransformInitialization "false")
-
-// Whether transforms are combined by composition or by addition.
-// In generally, Compose is the best option in most cases.
-// It does not influence the results very much.
+(AutomaticTransformInitialization "true")
+(AutomaticTransformInitializationMethod "CenterOfGravity")
 (HowToCombineTransforms "Compose")
-
-// ******************* Similarity measure *********************
-
-// Number of grey level bins in each resolution level,
-// for the mutual information. 16 or 32 usually works fine.
-// You could also employ a hierarchical strategy:
-//(NumberOfHistogramBins 16 32 64)
-(NumberOfHistogramBins 32)
-
-// If you use a mask, this option is important. 
-// If the mask serves as region of interest, set it to false.
-// If the mask indicates which pixels are valid, then set it to true.
-// If you do not use a mask, the option doesn't matter.
 (ErodeMask "false")
-
-// ******************** Multiresolution **********************
-
-// The number of resolutions. 1 Is only enough if the expected
-// deformations are small. 3 or 4 mostly works fine. For large
-// images and large deformations, 5 or 6 may even be useful.
-(NumberOfResolutions 2)
-
-// The downsampling/blurring factors for the image pyramids.
-// By default, the images are downsampled by a factor of 2
-// compared to the next resolution.
-// So, in 2D, with 4 resolutions, the following schedule is used:
-(ImagePyramidSchedule 16 16 4 4 )
-
-// Make sure that the number of elements equals the number
-// of resolutions times the image dimension.
-
-// ******************* Optimizer ****************************
-
-// Maximum number of iterations in each resolution level:
-// 200-500 works usually fine for affine registration.
-// For more robustness, you may increase this to 1000-2000.
-(MaximumNumberOfIterations 300)
-
-// The step size of the optimizer, in mm. By default the voxel size is used.
-// which usually works well. In case of unusual high-resolution images
-// (eg histology) it is necessary to increase this value a bit, to the size
-// of the "smallest visible structure" in the image:
-//(MaximumStepLength 3.0)
-
-// **************** Image sampling **********************
-
-// Number of spatial samples used to compute the mutual
-// information (and its derivative) in each iteration.
-// With an AdaptiveStochasticGradientDescent optimizer,
-// in combination with the two options below, around 2000
-// samples may already suffice.
-(NumberOfSpatialSamples 3000)
-
-// Refresh these spatial samples in every iteration, and select
-// them randomly. See the manual for information on other sampling
-// strategies.
 (NewSamplesEveryIteration "true")
-(ImageSampler "Random")
-
-// ************* Interpolation and Resampling ****************
-
-// Order of B-Spline interpolation used during registration/optimisation.
-// It may improve accuracy if you set this to 3. Never use 0.
-// An order of 1 gives linear interpolation. This is in most 
-// applications a good choice.
+(ImageSampler "RandomCoordinate")
 (BSplineInterpolationOrder 1)
-
-// Order of B-Spline interpolation used for applying the final
-// deformation.
-// 3 gives good accuracy; recommended in most cases.
-// 1 gives worse accuracy (linear interpolation)
-// 0 gives worst accuracy, but is appropriate for binary images
-// (masks, segmentations); equivalent to nearest neighbor interpolation.
 (FinalBSplineInterpolationOrder 3)
-
-//Default pixel value for pixels that come from outside the picture:
-(DefaultPixelValue 25)
-
-// Choose whether to generate the deformed moving image.
-// You can save some time by setting this to false, if you are
-// only interested in the final (nonrigidly) deformed moving image
-// for example.
 (WriteResultImage "true")
-
-// The pixel type and format of the resulting deformed moving image
-(ResultImagePixelType "short")
+(ResultImagePixelType "float")
 (ResultImageFormat "mha")
 
 
-
-
-=============== end of ParameterFile: C:\Users\tischer\Downloads\fiji-registration-master\fiji-registration-master\parameters_Affine.txt ===============
+=============== end of ParameterFile: /Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/elastix-parameters.txt ===============
 
 
 Reading images...
-Reading images took 4 ms.
+Reading images took 9 ms.
 
-Reading the elastix parameters from file ...
-
-Reading the elastix parameters from file ...
-
-Reading the elastix parameters from file ...
-
-Reading the elastix parameters from file ...
-
-Reading the elastix parameters from file ...
-
-Reading the elastix parameters from file ...
-
-WARNING: The parameter "AutomaticTransformInitializationMethod", requested at entry number 0, does not exist at all.
-  The default value "GeometricalCenter" is used instead.
-Transform parameters are initialized as: [1, 0, 0, 1, 0, 0]
-Scales are estimated automatically.
-Scales for transform parameters are: [33635.84912185033, 33510.22844963046, 33635.84912185033, 33510.22844963046, 1, 1]
-Initialization of all components (before registration) took: 10 ms.
-Preparation of the image pyramids took: 32 ms.
+Transform parameters are initialized as: [21.587123564878112, 4.038208045828242]
+Initialization of all components (before registration) took: 8 ms.
+Preparation of the image pyramids took: 15 ms.
 
 Resolution: 0
-WARNING: The parameter "ShowExactMetricValue", requested at entry number 0, does not exist at all.
-  The default value "false" is used instead.
+WARNING: The parameter "ExactMetricSampleGridSpacing", requested at entry number 0, does not exist at all.
+  The default value "1" is used instead.
+WARNING: The parameter "ExactMetricSampleGridSpacing", requested at entry number 1, does not exist at all.
+  The default value "1" is used instead.
 WARNING: The parameter "CheckNumberOfSamples", requested at entry number 0, does not exist at all.
   The default value "true" is used instead.
 Setting the fixed masks took: 0 ms.
 Setting the moving masks took: 0 ms.
+WARNING: The parameter "FixedImageBSplineInterpolationOrder", requested at entry number 0, does not exist at all.
+  The default value "1" is used instead.
+WARNING: The parameter "UseRandomSampleRegion", requested at entry number 0, does not exist at all.
+  The default value "false" is used instead.
 WARNING: The parameter "UseNormalization", requested at entry number 0, does not exist at all.
   The default value "false" is used instead.
 WARNING: The parameter "NumberOfSamplesForSelfHessian", requested at entry number 0, does not exist at all.
@@ -238,10 +112,6 @@ WARNING: The parameter "NumberOfBandStructureSamples", requested at entry number
   The default value "10" is used instead.
 WARNING: The parameter "UseAdaptiveStepSizes", requested at entry number 0, does not exist at all.
   The default value "true" is used instead.
-WARNING: The parameter "AutomaticParameterEstimation", requested at entry number 0, does not exist at all.
-  The default value "true" is used instead.
-WARNING: The parameter "MaximumStepLength", requested at entry number 0, does not exist at all.
-  The default value "1" is used instead.
 WARNING: The parameter "NumberOfGradientMeasurements", requested at entry number 0, does not exist at all.
   The default value "0" is used instead.
 WARNING: The parameter "NumberOfJacobianMeasurements", requested at entry number 0, does not exist at all.
@@ -256,691 +126,129 @@ Starting automatic parameter estimation for AdaptiveStochasticGradientDescent ..
 WARNING: The parameter "ASGDParameterEstimationMethod", requested at entry number 0, does not exist at all.
   The default value "Original" is used instead.
   Computing JacobianTerms ...
-  Computing the Jacobian terms took 0.001064s
-  NumberOfGradientMeasurements to estimate sigma_i: 6
+  Computing the Jacobian terms took 0.000861s
+  NumberOfGradientMeasurements to estimate sigma_i: 16
   Sampling gradients ...
-  Sampling the gradients took 0.016127s
-Automatic parameter estimation took 0.02s
-1:ItNr	2:Metric	3a:Time	3b:StepSize	4:||Gradient||	Time[ms]
-0	31.121279	0.000000	0.083839	4.717735	19.2
-1	25.526345	0.000000	0.083839	3.960660	1.5
-2	28.989689	0.000000	0.083839	4.688220	1.5
-3	25.737530	0.000000	0.083839	4.192384	1.5
-4	21.641584	0.000000	0.083839	3.534192	1.5
-5	22.617737	0.000000	0.083839	3.420911	1.5
-6	21.628606	0.000000	0.083839	3.520670	1.5
-7	15.810590	0.000000	0.083839	2.663090	1.6
-8	17.612703	0.000000	0.083839	3.044917	1.5
-9	20.778130	0.000000	0.083839	3.196354	1.5
-10	18.312291	0.000000	0.083839	2.945829	1.5
-11	19.363344	0.000000	0.083839	3.494431	1.5
-12	16.052105	0.000000	0.083839	2.647045	1.5
-13	15.274280	0.000000	0.083839	2.714814	1.4
-14	15.849789	0.000000	0.083839	2.836919	1.5
-15	14.216432	0.000000	0.083839	2.474610	1.5
-16	16.819979	0.000000	0.083839	2.705790	1.5
-17	13.432420	0.000000	0.083839	2.276961	1.5
-18	12.268684	0.000000	0.083839	2.243043	1.5
-19	12.863202	0.000000	0.083839	2.331375	1.5
-20	13.065163	0.000000	0.083839	2.212332	1.5
-21	10.075367	0.000000	0.083839	1.561407	1.5
-22	11.276022	0.000000	0.083839	2.079587	1.5
-23	10.779593	0.000000	0.083839	1.906852	1.5
-24	10.653499	0.000000	0.083839	2.029100	1.5
-25	9.896626	0.000000	0.083839	1.928920	1.5
-26	9.679067	0.000000	0.083839	1.723929	1.5
-27	9.130685	0.000000	0.083839	1.573016	1.5
-28	9.761792	0.000000	0.083839	1.719808	1.6
-29	8.374935	0.000000	0.083839	1.441329	1.5
-30	9.144265	0.000000	0.083839	1.769023	1.5
-31	10.215331	0.000000	0.083839	1.717784	1.5
-32	10.137730	0.000000	0.083839	1.665164	1.5
-33	8.843569	0.000000	0.083839	1.800744	1.5
-34	8.127097	0.000000	0.083839	1.657527	1.5
-35	8.933656	0.000000	0.083839	1.673735	1.5
-36	8.466910	0.000000	0.083839	1.701974	1.5
-37	7.953655	0.000000	0.083839	1.404702	1.5
-38	7.363233	0.000000	0.083839	1.310522	1.5
-39	8.128609	0.000000	0.083839	1.506384	1.5
-40	8.115008	0.000000	0.083839	1.404814	1.5
-41	8.080181	0.000000	0.083839	1.569872	1.5
-42	8.508292	0.000000	0.083839	1.529472	1.5
-43	7.404640	0.000000	0.083839	1.283539	1.5
-44	6.550377	0.000000	0.083839	1.143481	1.5
-45	7.062697	0.000000	0.083839	1.059608	1.5
-46	6.571137	0.000000	0.083839	1.085672	1.5
-47	5.939940	0.000000	0.083839	1.045574	1.5
-48	7.460275	0.000000	0.083839	1.054301	1.5
-49	5.707414	0.000000	0.083839	0.903814	1.5
-50	6.624521	0.000000	0.083839	1.033926	1.5
-51	7.249320	0.000000	0.083839	1.239531	1.5
-52	6.396740	0.000000	0.083839	0.929294	1.5
-53	6.413418	0.000000	0.083839	0.980671	1.5
-54	6.788024	0.000000	0.083839	1.062401	1.5
-55	5.268812	0.000000	0.083839	0.738788	1.6
-56	5.870288	0.000000	0.083839	0.876386	1.5
-57	5.839237	0.000000	0.083839	0.947492	1.5
-58	4.577481	0.000000	0.083839	0.701699	1.5
-59	5.718670	0.000000	0.083839	1.017615	1.5
-60	5.543132	0.000000	0.083839	0.962244	1.5
-61	5.474838	0.000000	0.083839	0.910189	1.5
-62	5.162679	0.000000	0.083839	0.815154	1.6
-63	5.830253	0.000000	0.083839	1.010009	1.6
-64	5.100809	0.000000	0.083839	0.809748	1.6
-65	5.701142	0.000000	0.083839	0.871889	1.5
-66	5.557785	0.000000	0.083839	0.906499	1.5
-67	4.748410	0.000000	0.083839	0.739447	1.5
-68	4.497418	0.000000	0.083839	0.607125	1.5
-69	4.680801	0.000000	0.083839	0.706370	1.5
-70	4.744256	0.000000	0.083839	0.707027	1.5
-71	4.120613	0.000000	0.083839	0.605312	1.5
-72	5.072094	0.000000	0.083839	0.689518	1.5
-73	5.345665	0.000000	0.083839	0.961954	1.5
-74	5.535926	0.000000	0.083839	0.815226	1.4
-75	4.878918	0.000000	0.083839	0.685370	1.5
-76	4.504075	0.000000	0.083839	0.720182	1.6
-77	4.330050	0.000000	0.083839	0.596167	1.5
-78	4.727045	0.000000	0.083839	0.685931	1.5
-79	3.787952	0.000000	0.083839	0.549412	1.5
-80	4.825643	0.000000	0.083839	0.638045	1.5
-81	4.292368	0.000000	0.083839	0.639409	1.5
-82	5.225358	0.000000	0.083839	0.700133	1.5
-83	4.206918	0.000000	0.083839	0.657691	1.5
-84	4.110785	0.000000	0.083839	0.652965	1.5
-85	4.691242	0.000000	0.083839	0.609649	1.4
-86	4.862364	0.000000	0.083839	0.667387	1.5
-87	4.226145	0.000000	0.083839	0.551661	1.5
-88	4.760575	0.000000	0.083839	0.664701	1.5
-89	4.784223	0.000000	0.083839	0.698233	1.5
-90	4.541453	0.000000	0.083839	0.623514	1.5
-91	4.458935	0.000000	0.083839	0.713761	1.5
-92	4.509731	0.000000	0.083839	0.645677	1.5
-93	3.634735	0.000000	0.083839	0.557686	1.5
-94	3.651972	0.000000	0.083839	0.504468	1.5
-95	4.135981	0.000000	0.083839	0.560627	1.5
-96	4.787982	0.000000	0.083839	0.724711	1.5
-97	4.166806	0.000000	0.083839	0.688054	1.5
-98	4.498873	0.000000	0.083839	0.603220	1.5
-99	4.511426	0.000000	0.083839	0.805209	1.5
-100	4.381901	0.000000	0.083839	0.599946	1.5
-101	3.480452	0.000000	0.083839	0.451992	1.5
-102	3.843822	0.000000	0.083839	0.511933	1.5
-103	3.851525	0.000000	0.083839	0.504039	1.6
-104	4.004724	0.000000	0.083839	0.575456	1.4
-105	4.316275	0.000000	0.083839	0.606075	1.5
-106	3.947075	0.000000	0.083839	0.601008	1.5
-107	3.984470	0.000000	0.083839	0.595061	1.6
-108	4.461899	0.000000	0.083839	0.702445	1.5
-109	3.892873	0.000000	0.083839	0.518875	1.5
-110	4.218435	0.000000	0.083839	0.650586	1.5
-111	3.539272	0.000000	0.083839	0.580906	1.6
-112	3.631605	0.000000	0.083839	0.537771	1.5
-113	3.945701	0.000000	0.083839	0.586732	1.5
-114	3.763949	0.000000	0.083839	0.564013	1.5
-115	4.065176	0.000000	0.083839	0.652104	1.5
-116	3.917052	0.000000	0.083839	0.516578	1.5
-117	3.374449	0.000000	0.083839	0.469872	1.7
-118	3.596355	0.000000	0.083839	0.507530	1.6
-119	3.589598	0.000000	0.083839	0.545542	1.6
-120	3.720204	0.000000	0.083839	0.505426	1.5
-121	3.477639	0.000000	0.083839	0.458372	1.4
-122	3.726286	0.000000	0.083839	0.528308	1.5
-123	3.670654	0.000000	0.083839	0.502665	1.6
-124	3.830428	0.000000	0.083839	0.535666	1.6
-125	3.998009	0.000000	0.083839	0.612179	1.5
-126	3.374964	0.000000	0.083839	0.419596	1.5
-127	3.362333	0.000000	0.083839	0.409952	1.5
-128	3.327296	0.000000	0.083839	0.431404	1.5
-129	3.354078	0.000000	0.083839	0.486096	1.5
-130	3.382759	0.000000	0.083839	0.532715	1.5
-131	3.492250	0.000000	0.083839	0.512632	1.5
-132	3.414184	0.000000	0.083839	0.454776	1.5
-133	3.092980	0.000000	0.083839	0.405233	1.5
-134	2.992625	0.000000	0.083839	0.385178	1.5
-135	3.553139	0.000000	0.083839	0.488821	1.5
-136	3.137132	0.000000	0.083839	0.429556	1.5
-137	3.391735	0.000000	0.083839	0.458499	1.5
-138	3.850755	0.000000	0.083839	0.591073	1.5
-139	3.173809	0.000000	0.083839	0.433917	1.5
-140	3.602176	0.000000	0.083839	0.557899	1.5
-141	2.768197	0.000000	0.083839	0.377404	1.5
-142	2.801784	0.000000	0.083839	0.447201	1.5
-143	3.286101	0.000000	0.083839	0.415927	1.5
-144	3.360293	0.000000	0.083839	0.447334	1.5
-145	2.744559	0.000000	0.083839	0.368825	1.5
-146	3.296683	0.000000	0.083839	0.417116	1.5
-147	3.144863	0.000000	0.083839	0.448796	1.5
-148	2.942863	0.000000	0.083839	0.417400	1.5
-149	3.135598	0.000000	0.083839	0.433453	1.4
-150	2.906190	0.000000	0.083839	0.398158	1.5
-151	2.839676	0.000000	0.083839	0.408998	1.5
-152	3.236711	0.000000	0.083839	0.460466	1.5
-153	3.126007	0.000000	0.083839	0.455630	1.5
-154	3.563205	0.000000	0.083839	0.543654	1.5
-155	2.937293	0.000000	0.083839	0.405385	1.6
-156	2.598382	0.000000	0.083839	0.376639	1.5
-157	3.063424	0.000000	0.083839	0.418137	1.5
-158	3.110229	0.000000	0.083839	0.364571	1.5
-159	2.952647	0.000000	0.083839	0.455857	1.6
-160	2.576438	0.000000	0.083839	0.340136	1.5
-161	2.831460	0.000000	0.083839	0.443555	1.5
-162	2.901501	0.000000	0.083839	0.390654	1.5
-163	2.511238	0.000000	0.083839	0.377097	1.5
-164	2.867547	0.000000	0.083839	0.412117	1.5
-165	2.875896	0.000000	0.083839	0.451887	1.4
-166	2.763104	0.000000	0.083839	0.361355	1.5
-167	2.882544	0.000000	0.083839	0.378937	1.5
-168	3.018375	0.000000	0.083839	0.411304	1.5
-169	2.712062	0.000000	0.083839	0.350223	1.5
-170	2.872524	0.000000	0.083839	0.425005	1.5
-171	3.101073	0.000000	0.083839	0.516592	1.5
-172	3.215156	0.000000	0.083839	0.472516	1.5
-173	2.450432	0.000000	0.083839	0.294560	1.5
-174	2.700879	0.000000	0.083839	0.337160	1.5
-175	2.455911	0.000000	0.083839	0.352446	1.5
-176	3.386976	0.000000	0.083839	0.470968	1.5
-177	2.963815	0.000000	0.083839	0.393167	1.5
-178	3.060916	0.000000	0.083839	0.396806	1.5
-179	2.968105	0.000000	0.083839	0.359951	1.5
-180	3.051860	0.000000	0.083839	0.417599	1.5
-181	2.773304	0.000000	0.083839	0.357219	1.5
-182	2.415764	0.000000	0.083839	0.326654	1.5
-183	3.008951	0.000000	0.083839	0.417810	1.4
-184	2.832838	0.000000	0.083839	0.324996	1.5
-185	2.762375	0.000000	0.083839	0.410118	1.4
-186	2.912916	0.000000	0.083839	0.449396	1.5
-187	2.657055	0.000000	0.083839	0.335314	1.5
-188	2.769783	0.000000	0.083839	0.371499	1.4
-189	3.005104	0.000000	0.083839	0.389875	1.5
-190	3.107117	0.000000	0.083839	0.416860	1.5
-191	2.738045	0.000000	0.083839	0.357166	1.5
-192	2.640654	0.000000	0.083839	0.315569	1.5
-193	2.583234	0.000000	0.083839	0.372249	1.4
-194	2.664697	0.000000	0.083839	0.344151	1.5
-195	2.871101	0.000000	0.083839	0.370664	1.5
-196	2.581743	0.000000	0.083839	0.359138	1.5
-197	3.041120	0.000000	0.083839	0.423711	1.5
-198	2.653454	0.000000	0.083839	0.401298	1.5
-199	2.755384	0.000000	0.083839	0.413179	1.5
-200	2.730045	0.000000	0.083839	0.404134	1.4
-201	2.039657	0.000000	0.083839	0.304954	1.5
-202	2.730708	0.000000	0.083839	0.375582	1.5
-203	2.592135	0.000000	0.083839	0.326998	1.5
-204	2.306171	0.000000	0.083839	0.366831	1.5
-205	2.705601	0.000000	0.083839	0.343435	1.5
-206	2.429371	0.000000	0.083839	0.349688	1.5
-207	2.186131	0.000000	0.083839	0.341798	1.5
-208	2.496323	0.000000	0.083839	0.300872	1.5
-209	2.410446	0.000000	0.083839	0.337438	1.5
-210	2.098772	0.000000	0.083839	0.253348	1.5
-211	2.527447	0.000000	0.083839	0.333425	1.5
-212	2.429613	0.000000	0.083839	0.267329	1.5
-213	2.300021	0.000000	0.083839	0.316764	1.5
-214	2.556175	0.000000	0.083839	0.314885	1.5
-215	2.610164	0.000000	0.083839	0.327621	1.5
-216	2.197168	0.000000	0.083839	0.281632	1.5
-217	2.390437	0.000000	0.083839	0.273970	1.5
-218	2.525193	0.000000	0.083839	0.337778	1.5
-219	2.472362	0.000000	0.083839	0.317542	1.5
-220	2.462782	0.000000	0.083839	0.298641	1.5
-221	2.667361	0.000000	0.083839	0.359340	1.5
-222	2.205932	0.000000	0.083839	0.260687	1.5
-223	2.681557	0.000000	0.083839	0.322121	1.5
-224	2.694250	0.000000	0.083839	0.394146	1.5
-225	2.490319	0.000000	0.083839	0.289061	1.5
-226	2.465451	0.000000	0.083839	0.303348	1.5
-227	2.313634	0.000000	0.083839	0.304066	1.5
-228	2.537264	0.000000	0.083839	0.325961	1.5
-229	2.304209	0.000000	0.083839	0.255631	1.5
-230	2.380344	0.000000	0.083839	0.328290	1.5
-231	2.559016	0.000000	0.083839	0.273663	1.5
-232	2.161805	0.000000	0.083839	0.255160	1.5
-233	2.522675	0.000000	0.083839	0.334071	1.4
-234	2.642214	0.000000	0.083839	0.357635	1.5
-235	2.509243	0.000000	0.083839	0.340223	1.5
-236	2.358557	0.000000	0.083839	0.268748	1.5
-237	2.315166	0.000000	0.083839	0.261957	1.4
-238	2.530742	0.000000	0.083839	0.303447	1.5
-239	2.394091	0.000000	0.083839	0.327418	1.5
-240	1.970391	0.000000	0.083839	0.239784	1.5
-241	2.469127	0.000000	0.083839	0.287576	1.4
-242	2.219769	0.000000	0.083839	0.282571	1.5
-243	2.156428	0.000000	0.083839	0.303408	1.5
-244	1.912459	0.000000	0.083839	0.223396	1.5
-245	2.332360	0.000000	0.083839	0.349896	1.5
-246	2.139629	0.000000	0.083839	0.233975	1.5
-247	2.274666	0.000000	0.083839	0.286747	1.5
-248	2.306866	0.000000	0.083839	0.323053	1.5
-249	2.037746	0.000000	0.083839	0.311024	1.5
-250	2.124254	0.000000	0.083839	0.203238	1.5
-251	2.330251	0.000000	0.083839	0.306824	1.5
-252	2.185693	0.000000	0.083839	0.264957	1.5
-253	2.084061	0.000000	0.083839	0.310737	1.5
-254	2.506000	0.000000	0.083839	0.327687	1.5
-255	2.544888	0.000000	0.083839	0.333920	1.5
-256	2.135037	0.000000	0.083839	0.284996	1.5
-257	1.917013	0.000000	0.083839	0.212658	1.5
-258	2.188299	0.000000	0.083839	0.315695	1.5
-259	2.510363	0.000000	0.083839	0.335855	1.5
-260	2.558653	0.000000	0.083839	0.321926	1.5
-261	2.000990	0.000000	0.083839	0.205461	1.5
-262	2.350370	0.000000	0.083839	0.337505	1.5
-263	2.641323	0.000000	0.083839	0.402902	1.5
-264	1.825052	0.000000	0.083839	0.214008	1.5
-265	2.102155	0.000000	0.083839	0.302119	1.5
-266	1.896354	0.000000	0.083839	0.202736	1.5
-267	2.371324	0.000000	0.083839	0.307200	1.5
-268	2.140616	0.000000	0.083839	0.299037	1.5
-269	2.071024	0.000000	0.083839	0.252553	1.5
-270	2.316314	0.000000	0.083839	0.324885	1.5
-271	1.769448	0.000000	0.083839	0.198928	1.4
-272	2.043933	0.000000	0.083839	0.248995	1.5
-273	2.095043	0.000000	0.083839	0.272996	1.5
-274	1.792406	0.000000	0.083839	0.170846	1.5
-275	2.259234	0.000000	0.083839	0.268356	1.5
-276	2.119697	0.000000	0.083839	0.246647	1.5
-277	2.221479	0.000000	0.083839	0.270601	1.5
-278	2.380741	0.000000	0.083839	0.369599	1.5
-279	2.091436	0.000000	0.083839	0.234790	1.5
-280	2.236496	0.000000	0.083839	0.337313	1.5
-281	1.959891	0.000000	0.083839	0.312795	1.5
-282	2.040133	0.000000	0.083839	0.237094	1.5
-283	2.406682	0.000000	0.083839	0.280205	1.5
-284	1.820181	0.000000	0.083839	0.206287	1.5
-285	1.882026	0.000000	0.083839	0.289073	1.5
-286	2.224512	0.000000	0.083839	0.238252	1.5
-287	2.018882	0.000000	0.083839	0.241091	1.5
-288	2.167425	0.000000	0.083839	0.308247	1.5
-289	1.890683	0.000000	0.083839	0.225853	1.4
-290	2.006840	0.000000	0.083839	0.224833	1.5
-291	2.029919	0.000000	0.083839	0.225167	1.4
-292	2.018133	0.000000	0.083839	0.245746	1.5
-293	2.026002	0.000000	0.083839	0.249296	1.5
-294	2.039412	0.000000	0.083839	0.209575	1.5
-295	2.001438	0.000000	0.083839	0.229889	1.5
-296	2.096460	0.000000	0.083839	0.243422	1.6
-297	2.174839	0.000000	0.083839	0.258634	1.5
-298	1.977388	0.000000	0.083839	0.241720	1.5
-299	1.859636	0.000000	0.083839	0.187194	1.5
-Time spent in resolution 0 (ITK initialization and iterating): 0.492 s.
+  Sampling the gradients took 0.317387s
+Automatic parameter estimation took 0.32s
+1:ItNr	2:Metric	3a:Time	3b:StepSize	4:||Gradient||	ExactMetric0	Time[ms]
+0	62.000926	0.000000	0.026058	4.961954	65.264440	349.0
+1	59.902062	0.000000	0.026058	6.225444	65.967334	22.6
+2	63.021047	0.000000	0.026058	6.177942	66.136804	21.3
+3	62.863818	0.000000	0.026058	6.686183	63.421702	19.6
+4	58.862899	0.000000	0.026058	6.102376	61.312188	22.7
+5	56.988225	0.000000	0.026058	5.974257	59.822822	18.4
+6	54.311751	0.000000	0.026058	5.935032	59.851120	19.0
+7	57.850072	0.000000	0.026058	7.562262	60.541592	21.0
+8	47.890515	0.000000	0.026058	4.905730	61.768657	20.2
+9	54.422176	0.000000	0.026058	6.818287	58.229757	20.7
+10	53.710300	0.000000	0.026058	5.311263	56.131806	19.9
+11	49.791654	0.000000	0.026058	3.698919	55.195257	19.1
+12	47.988120	0.000000	0.026058	4.464016	53.867934	20.7
+13	50.114489	0.000000	0.026058	4.741332	53.184145	20.3
+14	52.366296	0.000000	0.026058	3.760568	53.247589	21.6
+15	48.911515	0.000000	0.026058	4.781749	53.917056	22.2
+16	49.664828	0.000000	0.026058	6.293487	55.130188	21.9
+17	46.992642	0.000000	0.026058	5.780705	52.029969	18.6
+18	43.783034	0.000000	0.026058	4.674485	50.335882	18.4
+19	52.266616	0.000000	0.026058	5.218059	48.799279	17.8
+20	47.497663	0.000000	0.026058	4.872447	48.230472	22.1
+21	44.932653	0.000000	0.026058	5.344370	47.969092	24.1
+22	47.277676	0.000000	0.026058	4.295547	48.495188	23.1
+23	47.064284	0.000000	0.026058	4.176639	49.358004	18.5
+24	44.277008	0.000000	0.026058	5.081562	49.266243	17.5
+25	43.778739	0.000000	0.026058	3.959675	47.482178	21.9
+26	44.586767	0.000000	0.026058	4.897050	45.777380	17.7
+27	46.070087	0.000000	0.026058	3.441581	45.194771	17.7
+28	42.352306	0.000000	0.026058	3.554003	44.439640	21.3
+29	44.278758	0.000000	0.026058	5.214114	43.995276	20.7
+30	43.116298	0.000000	0.026058	5.150862	43.774307	20.2
+31	40.893683	0.000000	0.026058	5.000088	44.132877	17.5
+32	38.457358	0.000000	0.026058	4.417473	45.201842	21.5
+33	37.805894	0.000000	0.026058	4.307018	44.551767	18.9
+34	42.610003	0.000000	0.026058	4.704794	42.648100	18.0
+35	39.130551	0.000000	0.026058	4.446084	41.214679	21.1
+36	37.870104	0.000000	0.026058	4.645678	40.401599	19.4
+37	38.414331	0.000000	0.026058	3.492678	40.260272	19.6
+38	36.019527	0.000000	0.026058	3.649634	40.104873	17.4
+39	37.661924	0.000000	0.026058	3.716086	40.249231	20.1
+40	37.019515	0.000000	0.026058	4.440600	40.790044	27.6
+41	36.146269	0.000000	0.026058	3.296818	41.589760	17.5
+42	35.676429	0.000000	0.026058	3.186225	42.533834	21.4
+43	36.587885	0.000000	0.026058	4.088177	41.558063	18.3
+44	35.547475	0.000000	0.026058	4.213774	39.859045	21.5
+45	35.983538	0.000000	0.026058	4.544817	38.125063	19.9
+46	34.476850	0.000000	0.026058	3.895277	37.022851	18.3
+47	33.522667	0.000000	0.026058	3.472383	36.501729	17.4
+48	37.270128	0.000000	0.026058	2.947791	36.530507	17.5
+49	33.962653	0.000000	0.026058	2.798798	36.388819	17.8
+50	31.533362	0.000000	0.026058	3.782223	36.616276	17.5
+51	31.894218	0.000000	0.026058	3.765293	37.658524	18.5
+52	36.122292	0.000000	0.026058	3.343473	37.653438	21.8
+53	32.666403	0.000000	0.026058	4.265965	38.281464	18.0
+54	31.056068	0.000000	0.026058	4.054971	36.394472	18.2
+55	30.422686	0.000000	0.026058	3.333236	34.978613	21.7
+56	32.602658	0.000000	0.026058	3.659760	34.074883	17.4
+57	31.166227	0.000000	0.026058	4.633533	33.188816	20.6
+58	31.379006	0.000000	0.026058	2.843504	32.889986	20.5
+59	30.197784	0.000000	0.026058	3.344054	32.735785	20.0
+60	30.893037	0.000000	0.026058	3.938039	33.012825	22.7
+61	29.112755	0.000000	0.026058	1.914726	32.896139	18.0
+62	29.135918	0.000000	0.026058	3.048728	33.270524	19.8
+63	29.715020	0.000000	0.026058	2.828995	33.839623	24.6
+64	31.963403	0.000000	0.026058	3.185652	34.373701	21.6
+65	30.581824	0.000000	0.026058	2.941928	34.053413	17.3
+66	30.259877	0.000000	0.026058	3.208948	32.875968	21.8
+67	28.256631	0.000000	0.026058	2.937807	31.828676	19.3
+68	29.177513	0.000000	0.026058	3.511125	31.015523	17.6
+69	27.668315	0.000000	0.026058	3.615207	30.145621	25.3
+70	27.800025	0.000000	0.026058	2.083442	29.839288	17.8
+71	30.112486	0.000000	0.026058	3.507831	29.442081	23.0
+72	27.584432	0.000000	0.026058	2.667175	29.351872	18.5
+73	27.477078	0.000000	0.026058	1.628650	29.170753	21.3
+74	28.845422	0.000000	0.026058	1.940428	29.200312	20.6
+75	26.139383	0.000000	0.026058	2.147322	29.402610	18.5
+76	27.515305	0.000000	0.026058	2.587316	29.577427	19.3
+77	28.660554	0.000000	0.026058	1.944430	29.839450	17.3
+78	27.387572	0.000000	0.026058	2.340121	30.172431	17.5
+79	26.918508	0.000000	0.026058	2.169875	30.791863	20.8
+80	26.655111	0.000000	0.026058	2.989659	30.484560	19.6
+81	27.082793	0.000000	0.026058	2.029490	29.782481	17.3
+82	25.896292	0.000000	0.026058	1.882594	29.246048	20.4
+83	28.047798	0.000000	0.026058	3.629700	28.162412	19.8
+84	26.608273	0.000000	0.026058	2.232227	27.622516	21.8
+85	26.530626	0.000000	0.026058	2.203290	27.470781	24.1
+86	26.334895	0.000000	0.026058	2.599432	26.976986	18.0
+87	24.827074	0.000000	0.026058	2.611817	26.850841	18.2
+88	25.727284	0.000000	0.026058	2.513911	26.589427	21.4
+89	26.672067	0.000000	0.026058	1.943731	26.358690	20.7
+90	27.701624	0.000000	0.026058	1.972091	26.300344	17.7
+91	24.854941	0.000000	0.026058	0.880822	26.314491	25.4
+92	26.478291	0.000000	0.026058	2.791046	26.497062	17.3
+93	24.324503	0.000000	0.026058	2.020380	26.738439	20.8
+94	24.942068	0.000000	0.026058	1.596229	26.922257	19.4
+95	24.715022	0.000000	0.026058	1.773003	27.156088	20.2
+96	24.031294	0.000000	0.026058	3.132012	27.809447	17.6
+97	24.094854	0.000000	0.026058	1.600814	28.307767	18.2
+98	25.128794	0.000000	0.026058	2.655540	28.401041	17.5
+99	26.683670	0.000000	0.026058	1.453459	27.890261	21.7
+Time spent in resolution 0 (ITK initialization and iterating): 2.338 s.
 Stopping condition: Maximum number of iterations has been reached.
 Settings of AdaptiveStochasticGradientDescent in resolution 0:
-( SP_a 1.760613 )
+( SP_a 0.547228 )
 ( SP_A 20.000000 )
 ( SP_alpha 1.000000 )
 ( SigmoidMax 1.000000 )
-( SigmoidMin -0.030847 )
-( SigmoidScale 0.016726 )
-
-
-Resolution: 1
-WARNING: The parameter "ShowExactMetricValue", requested at entry number 1, does not exist at all.
-  The default value "false" is used instead.
-WARNING: The parameter "CheckNumberOfSamples", requested at entry number 1, does not exist at all.
-  The default value "true" is used instead.
-Setting the fixed masks took: 0 ms.
-Setting the moving masks took: 0 ms.
-WARNING: The parameter "UseNormalization", requested at entry number 1, does not exist at all.
-  The default value "false" is used instead.
-WARNING: The parameter "NumberOfSamplesForSelfHessian", requested at entry number 1, does not exist at all.
-  The default value "100000" is used instead.
-WARNING: The parameter "SelfHessianSmoothingSigma", requested at entry number 1, does not exist at all.
-  The default value "1" is used instead.
-WARNING: The parameter "SelfHessianNoiseRange", requested at entry number 1, does not exist at all.
-  The default value "1" is used instead.
-WARNING: The parameter "SP_A", requested at entry number 1, does not exist at all.
-  The default value "20" is used instead.
-WARNING: The parameter "MaximumNumberOfSamplingAttempts", requested at entry number 1, does not exist at all.
-  The default value "0" is used instead.
-WARNING: The parameter "SigmoidInitialTime", requested at entry number 1, does not exist at all.
-  The default value "0" is used instead.
-WARNING: The parameter "MaxBandCovSize", requested at entry number 1, does not exist at all.
-  The default value "192" is used instead.
-WARNING: The parameter "NumberOfBandStructureSamples", requested at entry number 1, does not exist at all.
-  The default value "10" is used instead.
-WARNING: The parameter "UseAdaptiveStepSizes", requested at entry number 1, does not exist at all.
-  The default value "true" is used instead.
-WARNING: The parameter "AutomaticParameterEstimation", requested at entry number 1, does not exist at all.
-  The default value "true" is used instead.
-WARNING: The parameter "MaximumStepLength", requested at entry number 1, does not exist at all.
-  The default value "1" is used instead.
-WARNING: The parameter "NumberOfGradientMeasurements", requested at entry number 1, does not exist at all.
-  The default value "0" is used instead.
-WARNING: The parameter "NumberOfJacobianMeasurements", requested at entry number 1, does not exist at all.
-  The default value "1000" is used instead.
-WARNING: The parameter "NumberOfSamplesForExactGradient", requested at entry number 1, does not exist at all.
-  The default value "100000" is used instead.
-WARNING: The parameter "SigmoidScaleFactor", requested at entry number 1, does not exist at all.
-  The default value "0.1" is used instead.
-Elastix initialization of all components (for this resolution) took: 0 ms.
-Initialization of AdvancedMeanSquares metric took: 0 ms.
-Starting automatic parameter estimation for AdaptiveStochasticGradientDescent ...
-WARNING: The parameter "ASGDParameterEstimationMethod", requested at entry number 0, does not exist at all.
-  The default value "Original" is used instead.
-  Computing JacobianTerms ...
-  Computing the Jacobian terms took 0.001023s
-  NumberOfGradientMeasurements to estimate sigma_i: 6
-  Sampling gradients ...
-  Sampling the gradients took 0.026429s
-Automatic parameter estimation took 0.03s
-1:ItNr	2:Metric	3a:Time	3b:StepSize	4:||Gradient||	Time[ms]
-0	3.695582	0.000000	0.373285	0.867738	29.5
-1	3.707393	0.000000	0.373285	0.663653	1.5
-2	3.436869	0.000000	0.373285	0.441758	1.8
-3	3.427574	0.000000	0.373285	0.462562	1.6
-4	3.207141	0.000000	0.373285	0.437022	1.5
-5	3.863640	0.000000	0.373285	0.581063	1.5
-6	3.257990	0.000000	0.373285	0.350455	1.5
-7	3.117125	0.000000	0.373285	0.312211	1.5
-8	3.313844	0.000000	0.373285	0.410104	1.5
-9	3.133590	0.000000	0.373285	0.273483	1.5
-10	2.919066	0.000000	0.373285	0.240395	1.5
-11	2.760024	0.000000	0.373285	0.247944	1.4
-12	3.235617	0.000000	0.373285	0.329170	1.5
-13	2.793528	0.000000	0.373285	0.326049	1.5
-14	3.030817	0.000000	0.373285	0.322851	1.5
-15	3.220024	0.000000	0.373285	0.316803	1.6
-16	2.667369	0.000000	0.373285	0.261578	1.5
-17	3.140931	0.000000	0.373285	0.375995	1.4
-18	3.524067	0.000000	0.373285	0.361900	1.5
-19	2.568315	0.000000	0.373285	0.301769	1.5
-20	3.145329	0.000000	0.373285	0.311542	1.5
-21	2.905701	0.000000	0.373285	0.244799	1.5
-22	2.803783	0.000000	0.373285	0.231973	1.5
-23	2.876606	0.000000	0.373285	0.244192	1.5
-24	2.741897	0.000000	0.373285	0.281304	1.5
-25	2.499332	0.000000	0.373285	0.200184	1.4
-26	2.863708	0.000000	0.373285	0.268512	1.5
-27	2.564505	0.000000	0.373285	0.291022	1.5
-28	2.736676	0.000000	0.373285	0.318210	1.5
-29	2.672214	0.000000	0.373285	0.306252	1.5
-30	2.646112	0.000000	0.373285	0.275293	1.6
-31	2.773336	0.000000	0.373285	0.273931	1.5
-32	2.620352	0.000000	0.373285	0.263751	1.5
-33	2.542262	0.000000	0.373285	0.278644	1.4
-34	2.688402	0.000000	0.373285	0.377368	1.5
-35	2.720731	0.000000	0.373285	0.272004	1.5
-36	2.719126	0.000000	0.373285	0.300805	1.5
-37	2.874668	0.000000	0.373285	0.264393	1.4
-38	2.577685	0.000000	0.373285	0.233557	1.5
-39	2.581301	0.000000	0.373285	0.254789	1.5
-40	2.688507	0.000000	0.373285	0.276900	1.5
-41	2.462041	0.000000	0.373285	0.237302	1.5
-42	2.514080	0.000000	0.373285	0.270350	1.5
-43	2.481560	0.000000	0.373285	0.164170	1.5
-44	2.159841	0.000000	0.373285	0.198654	1.4
-45	2.685651	0.000000	0.373285	0.315645	1.5
-46	2.368580	0.000000	0.373285	0.278075	1.5
-47	2.339121	0.000000	0.373285	0.229744	1.5
-48	2.666435	0.000000	0.373285	0.236906	1.5
-49	2.547839	0.000000	0.373285	0.252522	1.5
-50	2.359496	0.000000	0.373285	0.220626	1.5
-51	2.224789	0.000000	0.373285	0.285441	1.4
-52	2.276851	0.118819	0.371185	0.241144	1.5
-53	2.481432	0.539797	0.363931	0.225577	1.5
-54	2.114226	0.458586	0.365308	0.180608	1.5
-55	2.368447	0.377377	0.366696	0.206435	1.4
-56	2.469088	0.296175	0.368094	0.224784	1.5
-57	2.363532	0.214966	0.369503	0.363049	1.4
-58	2.385216	0.133755	0.370923	0.284400	1.4
-59	1.995051	1.128316	0.354252	0.182311	1.5
-60	2.183081	1.055736	0.355417	0.224769	1.5
-61	2.674692	0.974575	0.356730	0.259542	1.5
-62	2.306872	0.893365	0.358053	0.228959	1.5
-63	2.347393	0.812206	0.359386	0.248834	1.5
-64	2.246551	0.730996	0.360729	0.217107	1.5
-65	2.115262	0.649794	0.362082	0.246618	1.4
-66	2.273283	0.568584	0.363445	0.265092	1.5
-67	2.190099	0.900678	0.357934	0.231152	1.5
-68	2.100863	1.135468	0.354137	0.232331	1.5
-69	2.165302	1.054258	0.355441	0.205696	1.4
-70	2.309606	0.973199	0.356753	0.224433	1.5
-71	2.257704	0.891994	0.358076	0.201437	1.5
-72	2.023404	0.810817	0.359409	0.199154	1.5
-73	2.065740	0.730525	0.360737	0.151156	1.4
-74	2.145744	0.649337	0.362089	0.194119	1.5
-75	2.261968	0.568138	0.363453	0.335597	1.5
-76	2.202216	0.486928	0.364826	0.301116	1.5
-77	1.954977	1.486407	0.348610	0.159178	1.5
-78	2.228810	1.405238	0.349873	0.232970	1.5
-79	2.273725	1.324028	0.351146	0.201770	1.5
-80	2.094441	1.242818	0.352428	0.162532	1.5
-81	2.060772	1.161624	0.353719	0.187337	1.5
-82	2.184452	1.080815	0.355014	0.224242	1.5
-83	2.053427	0.999786	0.356321	0.179645	1.5
-84	2.250731	0.920728	0.357606	0.237927	1.4
-85	2.028230	0.839523	0.358936	0.176768	1.4
-86	2.193300	0.780538	0.359908	0.286967	1.5
-87	2.001609	0.699328	0.361255	0.260261	1.5
-88	2.097115	0.871075	0.358418	0.249895	1.5
-89	1.982024	0.789864	0.359754	0.381849	1.5
-90	1.972473	1.789802	0.343969	0.184657	1.5
-91	2.006727	1.708591	0.345199	0.259555	1.5
-92	1.998478	1.627383	0.346438	0.185394	1.5
-93	2.076230	1.546173	0.347686	0.235089	1.5
-94	2.124438	1.466737	0.348916	0.198612	1.5
-95	2.015241	1.385527	0.350181	0.137017	1.5
-96	2.108035	1.304910	0.351447	0.227033	1.5
-97	1.779116	1.223703	0.352731	0.187506	1.5
-98	2.050199	1.142494	0.354025	0.159709	1.5
-99	2.010467	1.061403	0.355326	0.238660	1.5
-100	1.799977	0.980210	0.356639	0.127407	1.5
-101	1.903089	0.903277	0.357891	0.182562	1.4
-102	1.920575	0.822613	0.359214	0.187192	1.5
-103	1.958201	0.743283	0.360525	0.164241	1.4
-104	2.008615	0.664101	0.361843	0.197608	1.5
-105	1.863650	0.582894	0.363204	0.145441	1.5
-106	1.833450	0.502095	0.364569	0.233839	1.5
-107	1.891891	0.420899	0.365951	0.209436	1.4
-108	2.073293	0.339689	0.367343	0.192415	1.5
-109	1.821920	0.258537	0.368746	0.171188	1.4
-110	1.868709	0.177343	0.370159	0.184511	1.5
-111	1.922511	0.096133	0.371584	0.184435	1.5
-112	1.847035	0.015950	0.373002	0.164136	1.5
-113	1.809512	0.000000	0.373285	0.172019	1.5
-114	2.030556	0.000000	0.373285	0.203322	1.5
-115	2.194874	0.000000	0.373285	0.176553	1.5
-116	1.826344	0.000000	0.373285	0.221799	1.4
-117	1.772329	0.000000	0.373285	0.148391	1.5
-118	1.707168	0.000000	0.373285	0.186152	1.5
-119	1.901761	0.000000	0.373285	0.142324	1.5
-120	1.816241	0.000000	0.373285	0.190520	1.5
-121	1.850859	0.000000	0.373285	0.145112	1.5
-122	2.060967	0.000000	0.373285	0.158002	1.5
-123	1.842744	0.000000	0.373285	0.141931	1.5
-124	1.644234	0.000000	0.373285	0.130392	1.5
-125	1.640073	0.000000	0.373285	0.137787	1.5
-126	1.763307	0.000000	0.373285	0.172860	1.5
-127	1.758973	0.000000	0.373285	0.159215	1.5
-128	1.905785	0.000000	0.373285	0.163080	1.5
-129	1.799405	0.000000	0.373285	0.161672	1.5
-130	2.039484	0.000000	0.373285	0.207306	1.5
-131	1.822795	0.000000	0.373285	0.139931	1.5
-132	1.734742	0.000000	0.373285	0.155092	1.5
-133	1.834559	0.000000	0.373285	0.170969	1.4
-134	1.952444	0.000000	0.373285	0.242361	1.5
-135	1.735923	0.000000	0.373285	0.158098	1.5
-136	1.854776	0.000000	0.373285	0.137381	1.6
-137	1.665250	0.000000	0.373285	0.136971	1.4
-138	1.619016	0.000000	0.373285	0.174263	1.5
-139	1.677485	0.000000	0.373285	0.136274	1.4
-140	1.766544	0.000000	0.373285	0.130122	1.5
-141	1.728378	0.000000	0.373285	0.226406	1.4
-142	1.718542	0.000000	0.373285	0.179493	1.5
-143	1.829821	0.035584	0.372654	0.169357	1.6
-144	1.716616	0.000000	0.373285	0.149831	1.5
-145	1.622900	0.000000	0.373285	0.126712	1.4
-146	1.662113	0.000000	0.373285	0.138460	1.5
-147	1.607685	0.000000	0.373285	0.093630	1.5
-148	1.522538	0.000000	0.373285	0.144499	1.4
-149	1.801461	0.000000	0.373285	0.170890	1.5
-150	1.625784	0.000000	0.373285	0.125263	1.5
-151	1.682740	0.000000	0.373285	0.161907	1.4
-152	1.466977	0.000000	0.373285	0.140999	1.9
-153	1.541131	0.000000	0.373285	0.134633	1.5
-154	1.706381	0.000000	0.373285	0.166512	1.5
-155	1.563138	0.000000	0.373285	0.183431	1.5
-156	1.597118	0.299156	0.368042	0.125178	1.5
-157	1.665423	0.222231	0.369377	0.221555	1.5
-158	1.790594	0.153209	0.370582	0.146122	1.5
-159	1.574871	0.072000	0.372010	0.179810	1.5
-160	1.672587	0.001702	0.373255	0.164509	1.5
-161	1.576120	0.000000	0.373285	0.163034	1.4
-162	1.647109	0.000000	0.373285	0.183264	1.5
-163	1.631090	0.000000	0.373285	0.234453	1.5
-164	1.547927	0.000000	0.373285	0.138973	1.5
-165	1.691576	0.159988	0.370463	0.160435	1.5
-166	1.527272	0.119955	0.371165	0.080630	1.6
-167	1.651612	0.040389	0.372569	0.127594	1.5
-168	1.616744	0.000000	0.373285	0.118232	1.5
-169	1.634632	0.000000	0.373285	0.150103	1.4
-170	1.590339	0.000000	0.373285	0.157159	1.5
-171	1.574824	0.113325	0.371282	0.106346	1.5
-172	1.628826	0.032723	0.372705	0.124832	1.5
-173	1.657871	0.000000	0.373285	0.186328	1.5
-174	1.579484	0.000000	0.373285	0.199581	1.5
-175	1.674616	0.913253	0.357728	0.105068	1.5
-176	1.855476	0.832345	0.359054	0.155931	1.5
-177	1.593321	0.752798	0.360367	0.104190	1.5
-178	1.540658	0.689084	0.361426	0.097195	1.5
-179	1.485766	0.626575	0.362470	0.166750	1.5
-180	1.640500	0.596759	0.362971	0.064609	1.5
-181	1.607997	0.524397	0.364191	0.112588	1.6
-182	1.640400	0.465504	0.365190	0.121627	1.5
-183	1.543194	0.385289	0.366560	0.118156	1.5
-184	1.758880	0.324333	0.367608	0.106680	1.5
-185	1.551324	0.285492	0.368279	0.185214	1.5
-186	1.648359	0.211941	0.369556	0.213178	1.5
-187	1.543895	1.208482	0.352973	0.105464	1.5
-188	1.533853	1.127837	0.354259	0.166359	1.5
-189	1.739213	1.080194	0.355024	0.140276	1.5
-190	1.567417	0.999256	0.356330	0.168683	1.5
-191	1.714348	0.987460	0.356521	0.156473	1.5
-192	1.525913	0.910584	0.357772	0.080553	1.5
-193	1.533058	0.833467	0.359036	0.123659	1.5
-194	1.540891	0.761578	0.360222	0.151130	1.5
-195	1.658643	0.682012	0.361544	0.107915	1.5
-196	1.533310	0.602133	0.362881	0.189870	1.4
-197	1.554041	0.524148	0.364195	0.105725	1.5
-198	1.555561	0.457868	0.365320	0.132974	1.5
-199	1.608343	0.424276	0.365893	0.148047	1.4
-200	1.585329	0.344800	0.367255	0.113183	1.5
-201	1.492455	0.291603	0.368173	0.115217	1.5
-202	1.612625	0.241041	0.369049	0.091577	1.5
-203	1.493204	0.168019	0.370323	0.116445	1.5
-204	1.495717	0.091053	0.371674	0.136131	1.5
-205	1.567646	0.022131	0.372892	0.116659	1.5
-206	1.538924	0.040975	0.372558	0.121860	1.5
-207	1.675072	0.000000	0.373285	0.123145	1.5
-208	1.581699	0.000000	0.373285	0.092721	1.4
-209	1.445765	0.000000	0.373285	0.090024	1.5
-210	1.493549	0.000000	0.373285	0.119385	1.5
-211	1.457652	0.014644	0.373025	0.107569	1.5
-212	1.464988	0.000000	0.373285	0.112208	1.5
-213	1.539158	0.012520	0.373063	0.092746	1.5
-214	1.529543	0.000000	0.373285	0.168928	1.5
-215	1.474708	0.000000	0.373285	0.132579	1.5
-216	1.389244	0.210154	0.369587	0.161814	1.5
-217	1.584095	0.129143	0.371004	0.123136	1.5
-218	1.517602	0.089631	0.371699	0.084561	1.5
-219	1.432854	0.046703	0.372457	0.119582	1.5
-220	1.491567	0.003160	0.373229	0.087648	1.5
-221	1.442421	0.000000	0.373285	0.104295	1.5
-222	1.601782	0.000000	0.373285	0.124613	1.5
-223	1.570238	0.000000	0.373285	0.089692	1.5
-224	1.586455	0.000000	0.373285	0.107037	1.5
-225	1.525594	0.000000	0.373285	0.127248	1.5
-226	1.432660	0.000000	0.373285	0.088509	1.5
-227	1.471446	0.000000	0.373285	0.102391	1.5
-228	1.530127	0.000000	0.373285	0.110801	1.5
-229	1.544770	0.000000	0.373285	0.110490	1.5
-230	1.494869	0.000000	0.373285	0.091131	1.5
-231	1.428616	0.000000	0.373285	0.108421	1.5
-232	1.599503	0.000000	0.373285	0.135793	1.5
-233	1.723367	0.006190	0.373175	0.110710	1.5
-234	1.543659	0.000000	0.373285	0.074960	1.5
-235	1.431097	0.000000	0.373285	0.106207	1.5
-236	1.472860	0.000000	0.373285	0.071385	1.5
-237	1.555449	0.000000	0.373285	0.100572	1.5
-238	1.615624	0.000000	0.373285	0.091669	1.5
-239	1.373154	0.000000	0.373285	0.079860	1.5
-240	1.396479	0.000000	0.373285	0.102442	1.5
-241	1.594215	0.000000	0.373285	0.089433	1.5
-242	1.450267	0.000000	0.373285	0.126814	1.5
-243	1.489764	0.000000	0.373285	0.110226	1.5
-244	1.548422	0.000000	0.373285	0.140927	1.4
-245	1.387165	0.000000	0.373285	0.179030	1.5
-246	1.520828	0.885703	0.358179	0.094912	1.5
-247	1.424704	0.886597	0.358164	0.113456	1.5
-248	1.519546	0.809612	0.359428	0.110702	1.5
-249	1.401465	0.731428	0.360722	0.094212	1.5
-250	1.474204	0.663825	0.361847	0.115329	1.5
-251	1.433898	0.599727	0.362921	0.081051	1.5
-252	1.357819	0.570536	0.363412	0.116420	1.5
-253	1.450895	0.571420	0.363397	0.095959	1.5
-254	1.481338	0.492505	0.364732	0.143693	1.5
-255	1.506336	0.415441	0.366044	0.110800	1.5
-256	1.455324	0.344194	0.367266	0.066105	1.5
-257	1.453210	0.316870	0.367737	0.077622	1.5
-258	1.468022	0.251454	0.368869	0.103566	1.5
-259	1.596366	0.186459	0.370000	0.099954	1.5
-260	1.584780	0.130418	0.370981	0.116688	1.5
-261	1.404937	0.056345	0.372287	0.104004	1.5
-262	1.403812	0.000000	0.373285	0.072487	1.5
-263	1.288439	0.000000	0.373285	0.198596	1.5
-264	1.437127	0.307596	0.367897	0.120552	1.5
-265	1.464929	1.204589	0.353035	0.080806	1.5
-266	1.329850	1.127232	0.354269	0.089040	1.5
-267	1.506331	1.057600	0.355387	0.078943	1.5
-268	1.571757	1.001497	0.356294	0.093459	1.5
-269	1.489979	0.928027	0.357487	0.130424	1.5
-270	1.365449	0.897531	0.357985	0.090636	1.5
-271	1.393754	0.879545	0.358280	0.118018	1.5
-272	1.399159	0.917070	0.357666	0.076213	1.5
-273	1.594749	0.877204	0.358318	0.079443	1.4
-274	1.451206	0.807027	0.359471	0.081215	1.5
-275	1.410409	0.738232	0.360609	0.088136	1.4
-276	1.565768	0.715607	0.360984	0.087875	1.5
-277	1.318806	0.763325	0.360193	0.084991	1.5
-278	1.392587	0.760448	0.360240	0.184611	1.5
-279	1.531011	0.705286	0.361156	0.092781	1.5
-280	1.326805	1.203262	0.353056	0.055602	1.5
-281	1.606186	1.170950	0.353571	0.098510	1.5
-282	1.593950	1.106054	0.354608	0.071425	1.5
-283	1.307554	1.032612	0.355791	0.135112	1.4
-284	1.507197	0.995823	0.356386	0.068918	1.5
-285	1.371708	1.008781	0.356176	0.093110	1.5
-286	1.477813	0.937399	0.357335	0.103502	1.5
-287	1.527163	0.916214	0.357680	0.131518	1.5
-288	1.396463	0.934689	0.357379	0.141959	1.5
-289	1.590695	0.853792	0.358702	0.112716	1.5
-290	1.307429	0.774583	0.360007	0.080504	1.5
-291	1.391415	0.701008	0.361227	0.115192	1.5
-292	1.307752	0.628312	0.362441	0.138453	1.5
-293	1.361039	1.337851	0.350929	0.103549	1.5
-294	1.466437	1.257087	0.352202	0.126496	1.5
-295	1.362461	1.351869	0.350709	0.059154	1.5
-296	1.310116	1.288579	0.351705	0.076488	1.4
-297	1.493328	1.241097	0.352455	0.077866	1.4
-298	1.469248	1.172615	0.353544	0.088969	1.5
-299	1.550154	1.214270	0.352881	0.114499	1.4
-Time spent in resolution 1 (ITK initialization and iterating): 0.497 s.
-Stopping condition: Maximum number of iterations has been reached.
-Settings of AdaptiveStochasticGradientDescent in resolution 1:
-( SP_a 7.838994 )
-( SP_A 20.000000 )
-( SP_alpha 1.000000 )
-( SigmoidMax 1.000000 )
-( SigmoidMin -0.081210 )
-( SigmoidScale 0.002657 )
+( SigmoidMin -0.407466 )
+( SigmoidScale 7.590249 )
 
 
 
 =============== start of TransformParameterFile ===============
-(Transform "AffineTransform")
-(NumberOfParameters 6)
-(TransformParameters 1.036500 0.078544 -0.080636 1.035847 -8.280315 3.530274)
-(InitialTransformParametersFileName "C:\Users\tischer\Downloads\fiji-registration-master\fiji-registration-master\example-data\2d-affine--fiji\transformation-ch0-0005.tif.txt")
+(Transform "TranslationTransform")
+(NumberOfParameters 2)
+(TransformParameters 31.069521 4.253585)
+(InitialTransformParametersFileName "NoInitialTransform")
 (HowToCombineTransforms "Compose")
 
 // Image specific
@@ -953,47 +261,43 @@ Settings of AdaptiveStochasticGradientDescent in resolution 1:
 (Spacing 1.0000000000 1.0000000000)
 (Origin 0.0000000000 0.0000000000)
 (Direction 1.0000000000 0.0000000000 0.0000000000 1.0000000000)
-(UseDirectionCosines "true")
-
-// AdvancedAffineTransform specific
-(CenterOfRotationPoint 203.6468500000 265.5849910000)
+(UseDirectionCosines "false")
 
 // ResampleInterpolator specific
-(ResampleInterpolator "FinalBSplineInterpolator")
-(FinalBSplineInterpolationOrder 3)
+(ResampleInterpolator "FinalLinearInterpolator")
 
 // Resampler specific
 (Resampler "DefaultResampler")
-(DefaultPixelValue 25.000000)
+(DefaultPixelValue 2.000000)
 (ResultImageFormat "mha")
-(ResultImagePixelType "short")
+(ResultImagePixelType "float")
 (CompressResultImage "false")
 
 =============== end of TransformParameterFile ===============
 
-Registration result checksum: 2719156703
+Registration result checksum: 2549989404
 
 Applying final transform ...
-  Applying final transform took 0.03s
+  Applying final transform took 0.01s
 
-Final metric value  = 1.550154
+Final metric value  = 26.683670
 Settings of AdaptiveStochasticGradientDescent for all resolutions:
-( SP_a 1.760613 7.838994 )
-( SP_A 20.000000 20.000000 )
-( SP_alpha 1.000000 1.000000 )
-( SigmoidMax 1.000000 1.000000 )
-( SigmoidMin -0.030847 -0.081210 )
-( SigmoidScale 0.016726 0.002657 )
+( SP_a 0.547228 )
+( SP_A 20.000000 )
+( SP_alpha 1.000000 )
+( SigmoidMax 1.000000 )
+( SigmoidMin -0.407466 )
+( SigmoidScale 7.590249 )
 
-Time spent on saving the results, applying the final transform etc.: 32 ms.
-Running elastix with parameter file 0: "C:\Users\tischer\Downloads\fiji-registration-master\fiji-registration-master\parameters_Affine.txt", has finished.
+Time spent on saving the results, applying the final transform etc.: 11 ms.
+Running elastix with parameter file 0: "/Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/elastix-parameters.txt", has finished.
 
 
-Current time: Mon Aug 01 10:44:29 2016.
+Current time: Mon Feb 20 10:03:37 2017.
 Time used for running elastix with this parameter file:
-  1.3s.
+  2.4s.
 
 -------------------------------------------------------------------------
 
-Total time elapsed: 1.4s.
+Total time elapsed: 2.5s.
 
