@@ -321,8 +321,10 @@ def make_parameter_file(p):
   '(Resampler "DefaultResampler")',
   '(FixedImagePyramid "FixedSmoothingImagePyramid")', #'(FixedImagePyramid "FixedRecursiveImagePyramid")', # check manual
   '(MovingImagePyramid "MovingSmoothingImagePyramid")', # check manual
+  #'(FixedImagePyramid "FixedRecursiveImagePyramid")', #'(FixedImagePyramid "FixedRecursiveImagePyramid")', # check manual
+  #'(MovingImagePyramid "MovingRecursiveImagePyramid")', # check manual
   '(Optimizer "AdaptiveStochasticGradientDescent")',
-  '(ShowExactMetricValue "true")',
+  #'(ShowExactMetricValue "true")', # this makes the computation MUCH slower!!
   '(AutomaticParameterEstimation "true")',
   '(MaximumStepLength '+str(p['maximum_step_length'])+')',
   #'(SP_a 100)',
@@ -331,7 +333,7 @@ def make_parameter_file(p):
   '(AutomaticTransformInitialization "true")',  # this is not used if an initial transformation is provided
   '(AutomaticTransformInitializationMethod "CenterOfGravity")',
   '(HowToCombineTransforms "Compose")',
-  #'(NumberOfHistogramBins 32)',
+  '(NumberOfHistogramBins 32)', # what is this good for? 
   '(ErodeMask "false")',
   '(NewSamplesEveryIteration "true")',
   '(ImageSampler "'+p['image_sampler']+'")', # '(ImageSampler "Random")'RandomSparseMask
@@ -421,9 +423,7 @@ def compute_transformations(iReference, iDataSet, tbModel, p, output_folder, ini
   copy_file(os.path.join(output_folder, "TransformParameters.0.txt"), transformation_file )
   
   tbModel.setFileAbsolutePath(output_folder, transformation_filename, iDataSet, "Transformation", "TXT")
-  
-
-         
+    
   # store log file
   copy_file(os.path.join(output_folder, "elastix.log"), os.path.join(output_folder, "elastix-"+str(moving_file.split(os.sep)[-1]+".log")))
 
@@ -460,17 +460,22 @@ def get_file_list(foldername, reg_exp):
   print("#\n# Finding files in: "+foldername+"\n#")
   pattern = re.compile(reg_exp)
    
-  files = []
+  f = []
+  # Only look for files in the top directory
   for root, directories, filenames in os.walk(foldername):
-	for filename in filenames:
-	   print("Checking:", filename)
-	   if filename == "Thumbs.db":
-	     continue
-	   match = re.search(pattern, filename)
-	   if (match == None) or (match.group(1) == None):
-	     continue
-	   files.append(os.path.join(foldername, filename))  
-	   print("Accepted:", filename)	   
+    f.extend(filenames)
+    break
+
+  files = []
+  for filename in f:
+    print("Checking:", filename)
+    if filename == "Thumbs.db":
+      continue
+    match = re.search(pattern, filename)
+    if (match == None) or (match.group(1) == None):
+      continue
+    files.append(os.path.join(foldername, filename))
+    print("Accepted:", filename)	  	    
 
   return(sorted(files))
 
@@ -500,7 +505,7 @@ def make_mask_file(p, imp):
   IJ.run(imp_mask, "Select All", "");
   IJ.run(imp_mask, "Clear", "stack");
   IJ.run(imp_mask, "Select None", "");
-  IJ.run(imp_mask, "8-bit", "");
+  #IJ.run(imp_mask, "8-bit", "");
   for iSlice in range(z_min, z_min+z_width):
     imp_mask.setSlice(iSlice)
     ip = imp_mask.getProcessor()
@@ -794,6 +799,8 @@ def run():
   else:
     p['image_sampler'] = 'RandomCoordinate'
 
+  #p['image_sampler'] = 'Random'
+  
   #
   # Close images
   #
@@ -808,9 +815,9 @@ def run():
 
   if p['number_of_spatial_samples'] == 'auto':
     if p['voxels_in_mask'] == 'no mask':
-      p['number_of_spatial_samples'] = int(min(10000, p['voxels_in_image']))
+      p['number_of_spatial_samples'] = int(min(3000, p['voxels_in_image']))
     else:
-      p['number_of_spatial_samples'] = int(min(10000, p['voxels_in_mask']))
+      p['number_of_spatial_samples'] = int(min(3000, p['voxels_in_mask']))
   else:
     p['number_of_spatial_samples'] = int(p['number_of_spatial_samples'])
   
