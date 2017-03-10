@@ -1,7 +1,7 @@
-(Transform "AffineTransform")
-(NumberOfParameters 12)
-(TransformParameters 0.916205 0.031551 -0.009197 0.002509 0.999841 -0.000459 0.028240 -0.051474 0.914534 -1.604265 -15.471033 -9.629916)
-(InitialTransformParametersFileName "C:\Users\tischer\Downloads\fiji-registration-master\fiji-registration-master\example-data\3d-embryo--fiji\transformation-ch1-0001.tif.txt")
+(Transform "TranslationTransform")
+(NumberOfParameters 3)
+(TransformParameters 29.516332 40.272449 -11.349248)
+(InitialTransformParametersFileName "NoInitialTransform")
 (HowToCombineTransforms "Compose")
 
 // Image specific
@@ -14,18 +14,14 @@
 (Spacing 1.0000000000 1.0000000000 1.0000000000)
 (Origin 0.0000000000 0.0000000000 0.0000000000)
 (Direction 1.0000000000 0.0000000000 0.0000000000 0.0000000000 1.0000000000 0.0000000000 0.0000000000 0.0000000000 1.0000000000)
-(UseDirectionCosines "true")
-
-// AdvancedAffineTransform specific
-(CenterOfRotationPoint 68.5000000000 78.5000000000 241.5000000000)
+(UseDirectionCosines "false")
 
 // ResampleInterpolator specific
-(ResampleInterpolator "FinalBSplineInterpolator")
-(FinalBSplineInterpolationOrder 3)
+(ResampleInterpolator "FinalLinearInterpolator")
 
 // Resampler specific
 (Resampler "DefaultResampler")
-(DefaultPixelValue 25.000000)
-(ResultImageFormat "mha")
-(ResultImagePixelType "short")
+(DefaultPixelValue 0.000000)
+(ResultImageFormat "h5")
+(ResultImagePixelType "float")
 (CompressResultImage "false")

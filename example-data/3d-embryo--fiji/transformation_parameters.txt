@@ -1,0 +1,3 @@
+-0.000000	0.000000	0.000000	/Users/tischi/Documents/fiji-registration/example-data/3d-embryo--fiji/transformation-ch1-0000.tif.txt	/Users/tischi/Documents/fiji-registration/example-data/3d-embryo/ch1-0000.tif
+0.531141	16.261116	4.341105	/Users/tischi/Documents/fiji-registration/example-data/3d-embryo--fiji/transformation-ch1-0001.tif.txt	/Users/tischi/Documents/fiji-registration/example-data/3d-embryo/ch1-0001.tif
+29.516332	40.272449	-11.349248	/Users/tischi/Documents/fiji-registration/example-data/3d-embryo--fiji/transformation-ch1-0002.tif.txt	/Users/tischi/Documents/fiji-registration/example-data/3d-embryo/ch1-0002.tif

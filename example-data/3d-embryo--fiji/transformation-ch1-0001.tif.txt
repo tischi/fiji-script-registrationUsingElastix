@@ -1,6 +1,6 @@
-(Transform "AffineTransform")
-(NumberOfParameters 12)
-(TransformParameters 1.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000)
+(Transform "TranslationTransform")
+(NumberOfParameters 3)
+(TransformParameters 0.531141 16.261116 4.341105)
 (InitialTransformParametersFileName "NoInitialTransform")
 (HowToCombineTransforms "Compose")
 
@@ -14,18 +14,14 @@
 (Spacing 1.0000000000 1.0000000000 1.0000000000)
 (Origin 0.0000000000 0.0000000000 0.0000000000)
 (Direction 1.0000000000 0.0000000000 0.0000000000 0.0000000000 1.0000000000 0.0000000000 0.0000000000 0.0000000000 1.0000000000)
-(UseDirectionCosines "true")
-
-// AdvancedAffineTransform specific
-(CenterOfRotationPoint 68.5000000000 78.5000000000 241.5000000000)
+(UseDirectionCosines "false")
 
 // ResampleInterpolator specific
-(ResampleInterpolator "FinalBSplineInterpolator")
-(FinalBSplineInterpolationOrder 3)
+(ResampleInterpolator "FinalLinearInterpolator")
 
 // Resampler specific
 (Resampler "DefaultResampler")
-(DefaultPixelValue 25.000000)
-(ResultImageFormat "mha")
-(ResultImagePixelType "short")
+(DefaultPixelValue 0.000000)
+(ResultImageFormat "h5")
+(ResultImagePixelType "float")
 (CompressResultImage "false")

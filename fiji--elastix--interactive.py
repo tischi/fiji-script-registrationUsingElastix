@@ -634,7 +634,7 @@ def run():
       p_gui['input_folder'] = {'choices': '', 'value': '/g/almfspim', 'type': 'folder'}
       p_gui['output_folder'] = {'choices': '', 'value': '/g/almfspim', 'type': 'folder'}
     
-    p_gui['output_format'] = {'choices': ['mha'], 'value': 'mha', 'type': 'string'}
+    p_gui['output_format'] = {'choices': ['mha','h5'], 'value': 'mha', 'type': 'string'}
     p_gui['image_dimensions'] = {'choices': '', 'value': 3, 'type': 'int'} 
     p_gui['channels'] = {'choices': '', 'value': 'ch0', 'type': 'string'}
     p_gui['ch_ref'] = {'choices': '', 'value': 'ch0', 'type': 'string'}
@@ -799,7 +799,7 @@ def run():
   else:
     p['image_sampler'] = 'RandomCoordinate'
 
-  #p['image_sampler'] = 'Random'
+  p['output_format'] = 'h5'
   
   #
   # Close images

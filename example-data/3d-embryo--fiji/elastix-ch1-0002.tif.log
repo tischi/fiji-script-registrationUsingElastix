@@ -1,0 +1,301 @@
+
+elastix is started at Fri Mar 10 16:22:23 2017.
+
+which elastix:   /Users/tischi/Downloads/elastix_macosx64_v4.8/bin/elastix
+elastix runs at: ChristiansAir2.pool.embl.de
+  Mac OS X 10.10.5 (x64), 14F1912
+  with 4096 MB memory, and 2 cores @ 1700 MHz.
+-------------------------------------------------------------------------
+
+Running elastix with parameter file 0: "/Users/tischi/Documents/fiji-registration/example-data/3d-embryo--fiji/elastix-parameters.txt".
+
+Current time: Fri Mar 10 16:22:23 2017.
+Reading the elastix parameters from file ...
+
+Unsupported -priority value. Specify one of <high, abovenormal, normal, belownormal, idle, ''>.
+Installing all components.
+InstallingComponents was successful.
+
+ERROR: OpenCL-enabled device is not present!
+OpenCL processing is disabled.
+ELASTIX version: 4.800
+Command line options from ElastixBase:
+-f        /Users/tischi/Documents/fiji-registration/example-data/3d-embryo--fiji/ch1-0001.tif--transformed.h5
+-m        /Users/tischi/Documents/fiji-registration/example-data/3d-embryo/ch1-0002.tif
+-fMask    unspecified, so no fixed mask used
+-mMask    unspecified, so no moving mask used
+-out      /Users/tischi/Documents/fiji-registration/example-data/3d-embryo--fiji/
+-p        /Users/tischi/Documents/fiji-registration/example-data/3d-embryo--fiji/elastix-parameters.txt
+-threads  unspecified, so all available threads are used
+Command line options from TransformBase:
+-t0       unspecified, so no initial transform used
+
+=============== start of ParameterFile: /Users/tischi/Documents/fiji-registration/example-data/3d-embryo--fiji/elastix-parameters.txt ===============
+(Transform "TranslationTransform")
+(Registration "MultiResolutionRegistration")
+(NumberOfResolutions 1)
+(ImagePyramidSchedule 1 1 1 )
+(MaximumNumberOfIterations 100)
+(NumberOfSpatialSamples 3000)
+(DefaultPixelValue 0.0)
+(WriteTransformParametersEachIteration "false")
+(WriteTransformParametersEachResolution "false")
+(WriteResultImageAfterEachResolution "false")
+(WritePyramidImagesAfterEachResolution "false")
+(FixedInternalImagePixelType "float")
+(MovingInternalImagePixelType "float")
+(UseDirectionCosines "false")
+(Interpolator "LinearInterpolator")
+(ResampleInterpolator "FinalLinearInterpolator")
+(Resampler "DefaultResampler")
+(FixedImagePyramid "FixedSmoothingImagePyramid")
+(MovingImagePyramid "MovingSmoothingImagePyramid")
+(Optimizer "AdaptiveStochasticGradientDescent")
+(AutomaticParameterEstimation "true")
+(MaximumStepLength 1)
+(Metric "AdvancedMeanSquares")
+(AutomaticScalesEstimation "true")
+(AutomaticTransformInitialization "true")
+(AutomaticTransformInitializationMethod "CenterOfGravity")
+(HowToCombineTransforms "Compose")
+(NumberOfHistogramBins 32)
+(ErodeMask "false")
+(NewSamplesEveryIteration "true")
+(ImageSampler "RandomCoordinate")
+(BSplineInterpolationOrder 1)
+(FinalBSplineInterpolationOrder 3)
+(WriteResultImage "true")
+(ResultImagePixelType "float")
+(ResultImageFormat "h5")
+
+
+=============== end of ParameterFile: /Users/tischi/Documents/fiji-registration/example-data/3d-embryo--fiji/elastix-parameters.txt ===============
+
+
+Reading images...
+Reading images took 484 ms.
+
+Transform parameters are initialized as: [20.89101360361468, 31.456102702642596, -15.562982244741193]
+Initialization of all components (before registration) took: 576 ms.
+Preparation of the image pyramids took: 985 ms.
+
+Resolution: 0
+WARNING: The parameter "ShowExactMetricValue", requested at entry number 0, does not exist at all.
+  The default value "false" is used instead.
+WARNING: The parameter "CheckNumberOfSamples", requested at entry number 0, does not exist at all.
+  The default value "true" is used instead.
+Setting the fixed masks took: 0 ms.
+Setting the moving masks took: 0 ms.
+WARNING: The parameter "FixedImageBSplineInterpolationOrder", requested at entry number 0, does not exist at all.
+  The default value "1" is used instead.
+WARNING: The parameter "UseRandomSampleRegion", requested at entry number 0, does not exist at all.
+  The default value "false" is used instead.
+WARNING: The parameter "UseNormalization", requested at entry number 0, does not exist at all.
+  The default value "false" is used instead.
+WARNING: The parameter "NumberOfSamplesForSelfHessian", requested at entry number 0, does not exist at all.
+  The default value "100000" is used instead.
+WARNING: The parameter "SelfHessianSmoothingSigma", requested at entry number 0, does not exist at all.
+  The default value "1" is used instead.
+WARNING: The parameter "SelfHessianNoiseRange", requested at entry number 0, does not exist at all.
+  The default value "1" is used instead.
+WARNING: The parameter "SP_A", requested at entry number 0, does not exist at all.
+  The default value "20" is used instead.
+WARNING: The parameter "MaximumNumberOfSamplingAttempts", requested at entry number 0, does not exist at all.
+  The default value "0" is used instead.
+WARNING: The parameter "SigmoidInitialTime", requested at entry number 0, does not exist at all.
+  The default value "0" is used instead.
+WARNING: The parameter "MaxBandCovSize", requested at entry number 0, does not exist at all.
+  The default value "192" is used instead.
+WARNING: The parameter "NumberOfBandStructureSamples", requested at entry number 0, does not exist at all.
+  The default value "10" is used instead.
+WARNING: The parameter "UseAdaptiveStepSizes", requested at entry number 0, does not exist at all.
+  The default value "true" is used instead.
+WARNING: The parameter "NumberOfGradientMeasurements", requested at entry number 0, does not exist at all.
+  The default value "0" is used instead.
+WARNING: The parameter "NumberOfJacobianMeasurements", requested at entry number 0, does not exist at all.
+  The default value "1000" is used instead.
+WARNING: The parameter "NumberOfSamplesForExactGradient", requested at entry number 0, does not exist at all.
+  The default value "100000" is used instead.
+WARNING: The parameter "SigmoidScaleFactor", requested at entry number 0, does not exist at all.
+  The default value "0.1" is used instead.
+Elastix initialization of all components (for this resolution) took: 1 ms.
+Initialization of AdvancedMeanSquares metric took: 0 ms.
+Starting automatic parameter estimation for AdaptiveStochasticGradientDescent ...
+WARNING: The parameter "ASGDParameterEstimationMethod", requested at entry number 0, does not exist at all.
+  The default value "Original" is used instead.
+  Computing JacobianTerms ...
+  Computing the Jacobian terms took 0.001464s
+  NumberOfGradientMeasurements to estimate sigma_i: 11
+  Sampling gradients ...
+  Sampling the gradients took 0.234144s
+Automatic parameter estimation took 0.24s
+1:ItNr	2:Metric	3a:Time	3b:StepSize	4:||Gradient||	Time[ms]
+0	539.730666	0.000000	0.011776	51.098144	237.0
+1	575.258310	0.000000	0.011776	54.130064	1.7
+2	486.260814	0.000000	0.011776	37.690579	1.7
+3	503.291332	0.000000	0.011776	55.475065	1.7
+4	468.626425	0.000000	0.011776	43.654204	1.8
+5	455.295537	0.000000	0.011776	60.702088	1.7
+6	457.673256	0.000000	0.011776	46.274423	1.7
+7	386.625684	0.000000	0.011776	44.405889	1.7
+8	316.907643	0.000000	0.011776	26.266202	1.7
+9	346.344375	0.000000	0.011776	50.367504	1.7
+10	307.984929	0.000000	0.011776	36.326537	1.8
+11	348.690414	0.000000	0.011776	34.312102	1.7
+12	324.417004	0.000000	0.011776	31.166290	1.6
+13	281.396219	0.000000	0.011776	45.794384	1.7
+14	288.291590	0.000000	0.011776	31.514774	1.7
+15	278.657054	0.000000	0.011776	38.748394	1.6
+16	225.902526	0.000000	0.011776	31.491267	1.6
+17	247.747150	0.000000	0.011776	41.698541	1.7
+18	174.501499	0.000000	0.011776	31.584852	1.7
+19	212.468353	0.000000	0.011776	36.195543	1.7
+20	202.350336	0.000000	0.011776	20.688810	1.6
+21	268.296861	0.000000	0.011776	24.981287	1.6
+22	234.428467	0.000000	0.011776	16.712083	1.6
+23	218.046674	0.000000	0.011776	24.709038	1.6
+24	202.941924	0.000000	0.011776	14.392333	1.9
+25	174.203642	0.000000	0.011776	12.388629	1.7
+26	218.454764	0.000000	0.011776	19.085518	1.6
+27	206.705586	0.000000	0.011776	15.704721	1.6
+28	172.373450	0.000000	0.011776	21.137050	1.6
+29	174.777310	0.000000	0.011776	9.505252	1.7
+30	199.931963	0.000000	0.011776	8.213967	1.7
+31	184.255744	0.000000	0.011776	17.315734	1.6
+32	205.777264	0.000000	0.011776	12.421741	1.7
+33	184.863020	0.000000	0.011776	13.715589	1.6
+34	164.847357	0.000000	0.011776	16.438122	1.6
+35	185.214078	0.000000	0.011776	8.544298	1.6
+36	183.986553	0.000000	0.011776	9.475067	1.6
+37	148.279643	0.000000	0.011776	6.471044	1.6
+38	201.448262	0.000000	0.011776	14.232578	1.7
+39	171.346785	0.222888	0.011653	11.532896	1.6
+40	181.844615	0.011546	0.011770	6.187770	1.6
+41	145.671280	0.000000	0.011776	9.346509	1.6
+42	203.534463	0.000000	0.011776	5.161042	1.6
+43	205.158669	0.000000	0.011776	6.059644	1.6
+44	129.976273	0.000000	0.011776	6.273197	1.6
+45	158.710100	0.159976	0.011687	7.188246	1.6
+46	163.184597	0.552402	0.011475	2.420775	1.6
+47	207.431038	0.616732	0.011440	5.436934	1.7
+48	166.924463	0.709424	0.011392	7.104291	1.6
+49	165.473335	0.530339	0.011486	6.141303	1.6
+50	185.561951	0.347497	0.011585	13.445932	1.6
+51	196.232916	0.159856	0.011687	3.682025	1.6
+52	181.448199	0.440064	0.011535	9.884256	1.6
+53	178.562247	0.338749	0.011589	2.746712	1.6
+54	171.257991	0.268202	0.011628	10.464476	1.6
+55	165.288451	0.276384	0.011623	11.817985	1.6
+56	170.390232	0.043914	0.011752	8.292709	1.6
+57	172.761920	0.882794	0.011301	3.183397	1.6
+58	201.801752	0.748084	0.011371	15.073955	1.7
+59	192.453574	0.605657	0.011446	6.288810	1.7
+60	161.267737	0.394883	0.011559	1.734177	1.7
+61	189.266722	0.412077	0.011550	7.757375	1.6
+62	171.398896	0.373358	0.011571	5.335382	1.6
+63	176.251403	0.462138	0.011523	4.454329	1.6
+64	181.263127	0.375794	0.011569	7.609105	1.6
+65	159.741252	0.539791	0.011481	12.599741	1.6
+66	148.996796	0.672049	0.011411	14.385119	1.6
+67	182.357098	1.275241	0.011102	7.890151	1.6
+68	167.482171	1.614806	0.010935	13.060724	1.6
+69	184.230814	2.461456	0.010541	10.939805	1.6
+70	176.364194	2.212037	0.010654	3.375369	1.6
+71	166.768568	2.117235	0.010698	6.149463	1.6
+72	161.422937	2.123211	0.010695	5.229217	1.6
+73	161.032523	1.983078	0.010760	10.331738	1.6
+74	156.399949	1.784932	0.010854	7.177869	1.6
+75	175.511162	1.655035	0.010916	6.851781	1.6
+76	166.944915	1.797222	0.010848	7.715597	1.6
+77	172.217897	1.941672	0.010780	1.903151	1.6
+78	171.900733	1.932035	0.010784	1.556904	1.7
+79	168.844167	1.921215	0.010789	7.248578	1.6
+80	173.871181	1.979355	0.010762	9.567198	1.6
+81	169.078262	1.841156	0.010827	2.538004	1.6
+82	171.763439	1.847267	0.010824	6.023075	1.6
+83	176.393241	1.805727	0.010844	8.209274	1.6
+84	147.868315	1.926138	0.010787	3.254347	1.6
+85	172.715322	1.852184	0.010822	4.991972	1.7
+86	175.954797	1.922772	0.010789	10.198021	1.7
+87	178.524838	1.724918	0.010882	9.799452	1.6
+88	169.199999	1.720325	0.010885	11.662212	1.7
+89	201.116595	1.676074	0.010906	6.596709	1.6
+90	163.231324	2.215370	0.010653	7.093135	1.6
+91	155.531204	2.286728	0.010620	10.753971	1.6
+92	154.638797	2.690435	0.010439	7.813781	1.6
+93	186.740923	2.452217	0.010545	4.618166	1.7
+94	164.494315	2.490250	0.010528	7.389042	1.6
+95	169.828665	2.694276	0.010437	9.947301	1.6
+96	158.072342	2.462003	0.010541	6.845705	1.7
+97	185.734459	2.259569	0.010632	8.184754	1.6
+98	168.005909	2.111538	0.010700	2.943574	1.7
+99	185.408067	2.235017	0.010644	4.726217	1.6
+Time spent in resolution 0 (ITK initialization and iterating): 0.410 s.
+Stopping condition: Maximum number of iterations has been reached.
+Settings of AdaptiveStochasticGradientDescent in resolution 0:
+( SP_a 0.247304 )
+( SP_A 20.000000 )
+( SP_alpha 1.000000 )
+( SigmoidMax 1.000000 )
+( SigmoidMin -0.252847 )
+( SigmoidScale 26.731775 )
+
+
+
+=============== start of TransformParameterFile ===============
+(Transform "TranslationTransform")
+(NumberOfParameters 3)
+(TransformParameters 29.516332 40.272449 -11.349248)
+(InitialTransformParametersFileName "NoInitialTransform")
+(HowToCombineTransforms "Compose")
+
+// Image specific
+(FixedImageDimension 3)
+(MovingImageDimension 3)
+(FixedInternalImagePixelType "float")
+(MovingInternalImagePixelType "float")
+(Size 138 158 484)
+(Index 0 0 0)
+(Spacing 1.0000000000 1.0000000000 1.0000000000)
+(Origin 0.0000000000 0.0000000000 0.0000000000)
+(Direction 1.0000000000 0.0000000000 0.0000000000 0.0000000000 1.0000000000 0.0000000000 0.0000000000 0.0000000000 1.0000000000)
+(UseDirectionCosines "false")
+
+// ResampleInterpolator specific
+(ResampleInterpolator "FinalLinearInterpolator")
+
+// Resampler specific
+(Resampler "DefaultResampler")
+(DefaultPixelValue 0.000000)
+(ResultImageFormat "h5")
+(ResultImagePixelType "float")
+(CompressResultImage "false")
+
+=============== end of TransformParameterFile ===============
+
+Registration result checksum: 2180109467
+
+Applying final transform ...
+  Applying final transform took 1.69s
+
+Final metric value  = 185.408067
+Settings of AdaptiveStochasticGradientDescent for all resolutions:
+( SP_a 0.247304 )
+( SP_A 20.000000 )
+( SP_alpha 1.000000 )
+( SigmoidMax 1.000000 )
+( SigmoidMin -0.252847 )
+( SigmoidScale 26.731775 )
+
+Time spent on saving the results, applying the final transform etc.: 1690 ms.
+Running elastix with parameter file 0: "/Users/tischi/Documents/fiji-registration/example-data/3d-embryo--fiji/elastix-parameters.txt", has finished.
+
+
+Current time: Fri Mar 10 16:22:27 2017.
+Time used for running elastix with this parameter file:
+  4.2s.
+
+-------------------------------------------------------------------------
+
+Total time elapsed: 4.2s.
+
