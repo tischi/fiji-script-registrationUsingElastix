@@ -313,8 +313,8 @@ def make_parameter_file(p):
   '(WriteTransformParametersEachResolution "false")',
   '(WriteResultImageAfterEachResolution "false")',
   '(WritePyramidImagesAfterEachResolution "false")',
-  '(FixedInternalImagePixelType "float")',
-  '(MovingInternalImagePixelType "float")',
+  '(FixedInternalImagePixelType "float")', # i think this is needed to avoid the signed int issue
+  '(MovingInternalImagePixelType "float")', # i think this is needed to avoid the signed int issue
   '(UseDirectionCosines "false")', # ?
   '(Interpolator "LinearInterpolator")', # NearestNeighborInterpolator, LinearInterpolator (apparently no big speed difference)
   '(ResampleInterpolator "FinalLinearInterpolator")', # Could be BSpline
@@ -340,8 +340,8 @@ def make_parameter_file(p):
   '(BSplineInterpolationOrder 1)', 
   '(FinalBSplineInterpolationOrder 3)',
   '(WriteResultImage "true")',
-  '(ResultImagePixelType "float")', # adapt and check this!
-  '(ResultImageFormat "'+p['output_format']+'")' # why not tif?
+  '(ResultImagePixelType "short")', # todo: test whether this has the signed int issue!
+  '(ResultImageFormat "'+p['output_format']+'")' # tif does not work for Windows :(
   ]
   txt = '\n'.join(txt)
   txt = txt + '\n'
@@ -634,7 +634,7 @@ def run():
       p_gui['input_folder'] = {'choices': '', 'value': '/g/almfspim', 'type': 'folder'}
       p_gui['output_folder'] = {'choices': '', 'value': '/g/almfspim', 'type': 'folder'}
     
-    p_gui['output_format'] = {'choices': ['mha','h5'], 'value': 'mha', 'type': 'string'}
+    p_gui['output_format'] = {'choices': ['mha','h5'], 'value': 'h5', 'type': 'string'}
     p_gui['image_dimensions'] = {'choices': '', 'value': 3, 'type': 'int'} 
     p_gui['channels'] = {'choices': '', 'value': 'ch0', 'type': 'string'}
     p_gui['ch_ref'] = {'choices': '', 'value': 'ch0', 'type': 'string'}
@@ -798,8 +798,6 @@ def run():
     p['image_sampler'] = 'RandomSparseMask'
   else:
     p['image_sampler'] = 'RandomCoordinate'
-
-  p['output_format'] = 'h5'
   
   #
   # Close images
@@ -876,9 +874,11 @@ def run():
   #
   # show the interactive table
   #
+  '''
   frame = ManualControlFrame(tbModel)
   frame.setVisible(True)
-
+  '''
+  
   print("done!")
 
   
