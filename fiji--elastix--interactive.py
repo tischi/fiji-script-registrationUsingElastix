@@ -293,19 +293,25 @@ def make_parameter_file(p):
   file_path = p['elastix_parameter_file']
   script_file = file(file_path, "w")
 
-  image_pyramid_schedule = p["image_pyramid_schedule"].split(",")
-  s = ""; 
+  image_pyramid_schedule = p["image_pyramid_schedule"].split(";")
+  image_pyramid_schedule_string = ""; 
   for resolution in image_pyramid_schedule:
-    for d in range(p["image_dimensions"]): 
-      s = s + resolution + " "
-  image_pyramid_schedule = s
-
-
+    binnings = resolution.split(",");
+    for binning in binnings:
+      image_pyramid_schedule_string = image_pyramid_schedule_string + binning + " "
+  
+  step_sizes = p["step_sizes"].split(";")
+  step_sizes_string = "";
+  for step_size in step_sizes:
+    step_size = float(step_size) * (p['SP_A']**p['SP_alpha']) # this makes the inital step-size be the chosen value
+    step_sizes_string = step_sizes_string + str(step_size) + " "
+  
+  
   txt = [
   '(Transform "'+p['transformation']+'")',
   '(Registration "MultiResolutionRegistration")',
   '(NumberOfResolutions '+str(p["number_of_resolutions"])+')',
-  '(ImagePyramidSchedule '+image_pyramid_schedule+')',
+  '(ImagePyramidSchedule '+image_pyramid_schedule_string+')',
   '(MaximumNumberOfIterations '+str(int(p["maximum_number_of_iterations"]))+')',
   '(NumberOfSpatialSamples '+str(p["number_of_spatial_samples"])+')',
   '(DefaultPixelValue '+str(p["image_background_value"])+')',
@@ -323,17 +329,22 @@ def make_parameter_file(p):
   '(MovingImagePyramid "MovingSmoothingImagePyramid")', # check manual
   #'(FixedImagePyramid "FixedRecursiveImagePyramid")', #'(FixedImagePyramid "FixedRecursiveImagePyramid")', # check manual
   #'(MovingImagePyramid "MovingRecursiveImagePyramid")', # check manual
-  '(Optimizer "AdaptiveStochasticGradientDescent")',
+  #'(Optimizer "AdaptiveStochasticGradientDescent")',
+  '(Optimizer "StandardGradientDescent")',
+  '(UseAdaptiveStepSizes "true")',
+  #'(Optimizer "AdaptiveStochasticGradientDescent")',
   #'(ShowExactMetricValue "true")', # this makes the computation MUCH slower!!
-  '(AutomaticParameterEstimation "true")',
-  '(MaximumStepLength '+str(p['maximum_step_length'])+')',
-  #'(SP_a 100)',
+  #'(AutomaticParameterEstimation "true")',
+  #'(MaximumStepLength '+str(p['maximum_step_length'])+')', # only used by the AdaptiveStochasticGradientDescent
+  '(SP_a '+step_sizes_string+')',
+  '(SP_A '+str(p['SP_A'])+')',
+  '(SP_alpha '+str(p['SP_alpha'])+')',
   '(Metric "AdvancedMeanSquares")',
   '(AutomaticScalesEstimation "true")',
   '(AutomaticTransformInitialization "true")',  # this is not used if an initial transformation is provided
   '(AutomaticTransformInitializationMethod "CenterOfGravity")',
   '(HowToCombineTransforms "Compose")',
-  '(NumberOfHistogramBins 32)', # what is this good for? 
+  #'(NumberOfHistogramBins 32)', # only needed for the MutualInformation criterion
   '(ErodeMask "false")',
   '(NewSamplesEveryIteration "true")',
   '(ImageSampler "'+p['image_sampler']+'")', # '(ImageSampler "Random")'RandomSparseMask
@@ -620,7 +631,7 @@ def run():
     p_gui = {}
     # exposed to GUI
     p_gui['expose_to_gui'] = {'value': ['input_folder', 'output_folder', 'output_format', 'channels', 'ch_ref', 'reference_image_index', 'transformation', 
-                          'image_background_value', 'mask_file', 'mask_roi', 'maximum_number_of_iterations', 'image_pyramid_schedule',
+                          'image_background_value', 'mask_file', 'mask_roi', 'maximum_number_of_iterations', 'image_pyramid_schedule', 'step_sizes',
                           'number_of_spatial_samples', 'elastix_binary_file', 'transformix_binary_file']}
     
     IJ.log("Operating system: "+get_os_version())
@@ -644,7 +655,8 @@ def run():
     p_gui['mask_file'] = {'choices': '', 'value': '', 'type': 'file'}
     p_gui['mask_roi'] = {'choices': '', 'value': '10,10,10,100,100,100', 'type': 'string'}
     p_gui['maximum_number_of_iterations'] = {'choices': '', 'value': 100, 'type': 'int'}
-    p_gui['image_pyramid_schedule'] = {'choices': '', 'value': '1', 'type': 'string'}
+    p_gui['image_pyramid_schedule'] = {'choices': '', 'value': '40,40,10;4,4,1', 'type': 'string'}
+    p_gui['step_sizes'] = {'choices': '', 'value': '4;0.4', 'type': 'string'}
     p_gui['number_of_spatial_samples'] = {'choices': '', 'value': 'auto', 'type': 'string'}    
 
     if(get_os_version() == "windows 10"): 
@@ -671,7 +683,7 @@ def run():
   #
   # Create derived paramters
   #
-  p_gui['number_of_resolutions'] = {'value': len(p_gui['image_pyramid_schedule']['value'].split(","))}
+  p_gui['number_of_resolutions'] = {'value': len(p_gui['image_pyramid_schedule']['value'].split(";"))}
   p_gui['elastix_parameter_file'] = {'value': os.path.join(p_gui['output_folder']['value'], 'elastix-parameters.txt')}
   
   #
@@ -701,7 +713,7 @@ def run():
   	p['mask_roi'] = p_gui['mask_roi']['value'].split(","); p['mask_roi'] = map(int, p['mask_roi'])  
   else:
     p['mask_roi'] = None
-  
+ 
   #
   # DETERMINE INPUT FILES
   #
@@ -780,6 +792,18 @@ def run():
 
   
   #
+  # Stepsize management
+  #
+
+  # a_k =  a / (k + A)^alpha; where k is the time-point
+  # the actual step-size is a product of ak and the gradient measured in the image
+  # the gradients are typically larger in finer resolutions levels and thus the step-size needs to be smaller, accordingly 
+
+  p['SP_A'] = round( int(p['maximum_number_of_iterations']) * 0.1 ) # as recommended by the manual
+  p['SP_alpha'] = 0.602 # as recommended by the manual
+
+  
+  #
   # Create mask file
   #
 
@@ -813,9 +837,9 @@ def run():
 
   if p['number_of_spatial_samples'] == 'auto':
     if p['voxels_in_mask'] == 'no mask':
-      p['number_of_spatial_samples'] = int(min(3000, p['voxels_in_image']))
+      p['number_of_spatial_samples'] = int(min(10000, p['voxels_in_image']))
     else:
-      p['number_of_spatial_samples'] = int(min(3000, p['voxels_in_mask']))
+      p['number_of_spatial_samples'] = int(min(10000, p['voxels_in_mask']))
   else:
     p['number_of_spatial_samples'] = int(p['number_of_spatial_samples'])
   
