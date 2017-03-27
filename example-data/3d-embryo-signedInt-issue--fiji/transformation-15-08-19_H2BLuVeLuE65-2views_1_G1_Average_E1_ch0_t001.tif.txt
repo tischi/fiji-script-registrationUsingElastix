@@ -1,6 +1,6 @@
 (Transform "TranslationTransform")
 (NumberOfParameters 3)
-(TransformParameters 1.482753 0.583892 0.138701)
+(TransformParameters 1.435249 0.685601 0.180444)
 (InitialTransformParametersFileName "NoInitialTransform")
 (HowToCombineTransforms "Compose")
 

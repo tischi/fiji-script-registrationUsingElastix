@@ -1,7 +1,7 @@
-(Transform "TranslationTransform")
-(NumberOfParameters 2)
-(TransformParameters 49.773379 13.105784)
-(InitialTransformParametersFileName "NoInitialTransform")
+(Transform "AffineTransform")
+(NumberOfParameters 6)
+(TransformParameters 1.000273 -0.002042 0.002745 0.997338 1.712398 0.915463)
+(InitialTransformParametersFileName "/Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/transformation-ch0-0007.tif.txt")
 (HowToCombineTransforms "Compose")
 
 // Image specific
@@ -16,12 +16,15 @@
 (Direction 1.0000000000 0.0000000000 0.0000000000 1.0000000000)
 (UseDirectionCosines "false")
 
+// AdvancedAffineTransform specific
+(CenterOfRotationPoint 265.7236800000 257.5604440000)
+
 // ResampleInterpolator specific
 (ResampleInterpolator "FinalLinearInterpolator")
 
 // Resampler specific
 (Resampler "DefaultResampler")
 (DefaultPixelValue 2.000000)
-(ResultImageFormat "mha")
-(ResultImagePixelType "float")
+(ResultImageFormat "h5")
+(ResultImagePixelType "short")
 (CompressResultImage "false")

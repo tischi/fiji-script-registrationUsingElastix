@@ -288,7 +288,7 @@ def copy_file(src, dst):
 # Make parameter file
 #
 
-def make_parameter_file(p):
+def make_parameter_file_version_Sandbox(p):
 
   file_path = p['elastix_parameter_file']
   script_file = file(file_path, "w")
@@ -361,6 +361,70 @@ def make_parameter_file(p):
   script_file.close()
 
   return file_path
+
+
+def make_parameter_file_version_HenningNo5(p):
+
+  file_path = p['elastix_parameter_file']
+  script_file = file(file_path, "w")
+
+  image_pyramid_schedule = p["image_pyramid_schedule"].split(";")
+  image_pyramid_schedule_string = ""; 
+  for resolution in image_pyramid_schedule:
+    binnings = resolution.split(",");
+    for binning in binnings:
+      image_pyramid_schedule_string = image_pyramid_schedule_string + binning + " "
+  
+  step_sizes = p["step_sizes"].split(";")
+  step_sizes_string = "";
+  for step_size in step_sizes:
+    step_size = float(step_size) * (p['SP_A']**p['SP_alpha']) # this makes the inital step-size be the chosen value
+    step_sizes_string = step_sizes_string + str(step_size) + " "
+  
+  
+  txt = [
+  '(Transform "'+p['transformation']+'")',
+  '(Registration "MultiResolutionRegistration")',
+  '(NumberOfResolutions '+str(p["number_of_resolutions"])+')',
+  '(ImagePyramidSchedule '+image_pyramid_schedule_string+')',
+  '(MaximumNumberOfIterations '+str(int(p["maximum_number_of_iterations"]))+')',
+  '(NumberOfSpatialSamples '+str(p["number_of_spatial_samples"])+')',
+  '(DefaultPixelValue '+str(p["image_background_value"])+')',
+  '(WriteTransformParametersEachIteration "false")',
+  '(WriteTransformParametersEachResolution "false")',
+  '(WriteResultImageAfterEachResolution "false")',
+  '(WritePyramidImagesAfterEachResolution "false")',
+  '(FixedInternalImagePixelType "float")', # i think this is needed to avoid the signed int issue
+  '(MovingInternalImagePixelType "float")', # i think this is needed to avoid the signed int issue
+  '(UseDirectionCosines "false")', # ?
+  '(Interpolator "LinearInterpolator")', # NearestNeighborInterpolator, LinearInterpolator (apparently no big speed difference)
+  '(ResampleInterpolator "FinalLinearInterpolator")', # Could be BSpline
+  '(Resampler "DefaultResampler")',
+  '(FixedImagePyramid "FixedRecursiveImagePyramid")', #'(FixedImagePyramid "FixedRecursiveImagePyramid")', # check manual
+  '(MovingImagePyramid "MovingRecursiveImagePyramid")', # check manual
+  '(Optimizer "AdaptiveStochasticGradientDescent")',
+  '(AutomaticParameterEstimation "true")',
+  '(AutomaticScalesEstimation "true")',
+  '(Metric "AdvancedMeanSquares")',
+  '(AutomaticTransformInitialization "false")',  # this is not used if an initial transformation is provided
+  '(HowToCombineTransforms "Compose")',
+  '(ErodeMask "false")',
+  '(NewSamplesEveryIteration "true")',
+  '(ImageSampler "'+p['image_sampler']+'")', # '(ImageSampler "Random")'RandomSparseMask
+  '(BSplineInterpolationOrder 1)', 
+  '(FinalBSplineInterpolationOrder 3)',
+  '(WriteResultImage "true")',
+  '(ResultImagePixelType "short")', # todo: test whether this has the signed int issue!
+  '(ResultImageFormat "'+p['output_format']+'")' # tif does not work for Windows :(
+  ]
+  txt = '\n'.join(txt)
+  txt = txt + '\n'
+  print(txt)
+  script_file.write(txt)
+  script_file.close()
+
+  return file_path
+
 
 def show_standard_error_message():
   IJ.error("There was an error.\n\
@@ -630,7 +694,7 @@ def run():
     # make parameter structure if it has not been loaded
     p_gui = {}
     # exposed to GUI
-    p_gui['expose_to_gui'] = {'value': ['input_folder', 'output_folder', 'output_format', 'channels', 'ch_ref', 'reference_image_index', 'transformation', 
+    p_gui['expose_to_gui'] = {'value': ['version','input_folder', 'output_folder', 'output_format', 'channels', 'ch_ref', 'reference_image_index', 'transformation', 
                           'image_background_value', 'mask_file', 'mask_roi', 'maximum_number_of_iterations', 'image_pyramid_schedule', 'step_sizes',
                           'number_of_spatial_samples', 'elastix_binary_file', 'transformix_binary_file']}
     
@@ -644,7 +708,8 @@ def run():
     elif (get_os_version() == "linux"):
       p_gui['input_folder'] = {'choices': '', 'value': '/g/almfspim', 'type': 'folder'}
       p_gui['output_folder'] = {'choices': '', 'value': '/g/almfspim', 'type': 'folder'}
-    
+
+    p_gui['version'] = {'choices': ['HenningNo5','Sandbox'], 'value': 'HenningNo5', 'type': 'string'}
     p_gui['output_format'] = {'choices': ['mha','h5'], 'value': 'h5', 'type': 'string'}
     p_gui['image_dimensions'] = {'choices': '', 'value': 3, 'type': 'int'} 
     p_gui['channels'] = {'choices': '', 'value': 'ch0', 'type': 'string'}
@@ -794,10 +859,13 @@ def run():
   #
   # Stepsize management
   #
-
+  # Not used in version=HenningNo5	
+  
   # a_k =  a / (k + A)^alpha; where k is the time-point
   # the actual step-size is a product of ak and the gradient measured in the image
   # the gradients are typically larger in finer resolutions levels and thus the step-size needs to be smaller, accordingly 
+
+  
 
   p['SP_A'] = round( int(p['maximum_number_of_iterations']) * 0.1 ) # as recommended by the manual
   p['SP_alpha'] = 0.602 # as recommended by the manual
@@ -837,9 +905,9 @@ def run():
 
   if p['number_of_spatial_samples'] == 'auto':
     if p['voxels_in_mask'] == 'no mask':
-      p['number_of_spatial_samples'] = int(min(10000, p['voxels_in_image']))
+      p['number_of_spatial_samples'] = int(min(3000, p['voxels_in_image']))
     else:
-      p['number_of_spatial_samples'] = int(min(10000, p['voxels_in_mask']))
+      p['number_of_spatial_samples'] = int(min(3000, p['voxels_in_mask']))
   else:
     p['number_of_spatial_samples'] = int(p['number_of_spatial_samples'])
   
@@ -853,8 +921,12 @@ def run():
   #
   # Create elastix parameter file
   #
+
+  if p['version'] == 'HenningNo5':
+    make_parameter_file_version_HenningNo5(p)
+  elif p['version'] == 'sandbox':
+    make_parameter_file_version_Sandbox(p)
   
-  make_parameter_file(p)
 
   #
   # Compute transformations  
@@ -867,7 +939,6 @@ def run():
   #print("backwards")
   for i in range(p['reference_image_index'],-1,-1):
     # compute transformation and transform reference channel
-    previous_trafo = ""
     tbModel, previous_trafo, previous_transformed_image = compute_transformations(p['reference_image_index'], i, tbModel, p, p['output_folder'], previous_trafo, previous_transformed_image)    
     # apply transformation to all other channels
     tbModel = apply_transformation(i, tbModel, p, p['output_folder'])
@@ -878,7 +949,6 @@ def run():
   #print("forward")
   for i in range(p['reference_image_index']+1,n_files,+1):
     # compute transformation and transform reference channel
-    previous_trafo = ""
     tbModel, previous_trafo, previous_transformed_image = compute_transformations(p['reference_image_index'], i, tbModel, p, p['output_folder'], previous_trafo, previous_transformed_image)    
     # apply transformation to all other channels
     tbModel = apply_transformation(i, tbModel, p, p['output_folder'])

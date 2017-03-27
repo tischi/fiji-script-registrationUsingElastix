@@ -1,0 +1,30 @@
+(Transform "AffineTransform")
+(NumberOfParameters 12)
+(TransformParameters 1.018424 0.008903 0.008816 -0.009102 1.038891 0.062033 -0.001173 0.003579 1.029836 0.249044 -1.514640 -0.414955)
+(InitialTransformParametersFileName "/Users/tischi/Documents/fiji-registration/example-data/3d-embryo--fiji/transformation-15-08-19_H2BLuVeLuE65-2views_1_G1_Average_E1_ch0_t001.tif.txt")
+(HowToCombineTransforms "Compose")
+
+// Image specific
+(FixedImageDimension 3)
+(MovingImageDimension 3)
+(FixedInternalImagePixelType "float")
+(MovingInternalImagePixelType "float")
+(Size 250 250 131)
+(Index 0 0 0)
+(Spacing 1.0000000000 1.0000000000 1.0000000000)
+(Origin 0.0000000000 0.0000000000 0.0000000000)
+(Direction 1.0000000000 0.0000000000 0.0000000000 0.0000000000 1.0000000000 0.0000000000 0.0000000000 0.0000000000 1.0000000000)
+(UseDirectionCosines "false")
+
+// AdvancedAffineTransform specific
+(CenterOfRotationPoint 125.8592680000 127.9740510000 66.2205830000)
+
+// ResampleInterpolator specific
+(ResampleInterpolator "FinalLinearInterpolator")
+
+// Resampler specific
+(Resampler "DefaultResampler")
+(DefaultPixelValue 0.000000)
+(ResultImageFormat "h5")
+(ResultImagePixelType "short")
+(CompressResultImage "false")

@@ -1,15 +1,15 @@
 
-elastix is started at Mon Feb 20 10:03:42 2017.
+elastix is started at Mon Mar 27 20:58:36 2017.
 
 which elastix:   /Users/tischi/Downloads/elastix_macosx64_v4.8/bin/elastix
-elastix runs at: Christians-MacBook-Air-2.local
+elastix runs at: ChristiansAir2
   Mac OS X 10.10.5 (x64), 14F1912
   with 4096 MB memory, and 2 cores @ 1700 MHz.
 -------------------------------------------------------------------------
 
 Running elastix with parameter file 0: "/Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/elastix-parameters.txt".
 
-Current time: Mon Feb 20 10:03:42 2017.
+Current time: Mon Mar 27 20:58:36 2017.
 Reading the elastix parameters from file ...
 
 Unsupported -priority value. Specify one of <high, abovenormal, normal, belownormal, idle, ''>.
@@ -20,7 +20,7 @@ ERROR: OpenCL-enabled device is not present!
 OpenCL processing is disabled.
 ELASTIX version: 4.800
 Command line options from ElastixBase:
--f        /Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/ch0-0005.tif--transformed.mha
+-f        /Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/ch0-0005.tif--transformed.h5
 -m        /Users/tischi/Documents/fiji-registration/example-data/2d-affine/ch0-0006.tif
 -fMask    unspecified, so no fixed mask used
 -mMask    unspecified, so no moving mask used
@@ -28,15 +28,15 @@ Command line options from ElastixBase:
 -p        /Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/elastix-parameters.txt
 -threads  unspecified, so all available threads are used
 Command line options from TransformBase:
--t0       unspecified, so no initial transform used
+-t0       /Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/transformation-ch0-0005.tif.txt
 
 =============== start of ParameterFile: /Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/elastix-parameters.txt ===============
-(Transform "TranslationTransform")
+(Transform "AffineTransform")
 (Registration "MultiResolutionRegistration")
 (NumberOfResolutions 1)
-(ImagePyramidSchedule 1 1 )
+(ImagePyramidSchedule 1 1 1 )
 (MaximumNumberOfIterations 100)
-(NumberOfSpatialSamples 10000)
+(NumberOfSpatialSamples 100)
 (DefaultPixelValue 2.0)
 (WriteTransformParametersEachIteration "false")
 (WriteTransformParametersEachResolution "false")
@@ -48,16 +48,13 @@ Command line options from TransformBase:
 (Interpolator "LinearInterpolator")
 (ResampleInterpolator "FinalLinearInterpolator")
 (Resampler "DefaultResampler")
-(FixedImagePyramid "FixedSmoothingImagePyramid")
-(MovingImagePyramid "MovingSmoothingImagePyramid")
+(FixedImagePyramid "FixedRecursiveImagePyramid")
+(MovingImagePyramid "MovingRecursiveImagePyramid")
 (Optimizer "AdaptiveStochasticGradientDescent")
-(ShowExactMetricValue "true")
 (AutomaticParameterEstimation "true")
-(MaximumStepLength 1)
-(Metric "AdvancedMeanSquares")
 (AutomaticScalesEstimation "true")
-(AutomaticTransformInitialization "true")
-(AutomaticTransformInitializationMethod "CenterOfGravity")
+(Metric "AdvancedMeanSquares")
+(AutomaticTransformInitialization "false")
 (HowToCombineTransforms "Compose")
 (ErodeMask "false")
 (NewSamplesEveryIteration "true")
@@ -65,25 +62,37 @@ Command line options from TransformBase:
 (BSplineInterpolationOrder 1)
 (FinalBSplineInterpolationOrder 3)
 (WriteResultImage "true")
-(ResultImagePixelType "float")
-(ResultImageFormat "mha")
+(ResultImagePixelType "short")
+(ResultImageFormat "h5")
 
 
 =============== end of ParameterFile: /Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/elastix-parameters.txt ===============
 
 
 Reading images...
-Reading images took 9 ms.
+Reading images took 25 ms.
 
-Transform parameters are initialized as: [29.748435934592834, 7.031801961089116]
-Initialization of all components (before registration) took: 8 ms.
-Preparation of the image pyramids took: 15 ms.
+Reading the elastix parameters from file ...
+
+Reading the elastix parameters from file ...
+
+Reading the elastix parameters from file ...
+
+Reading the elastix parameters from file ...
+
+Reading the elastix parameters from file ...
+
+WARNING: The parameter "AutomaticTransformInitializationMethod", requested at entry number 0, does not exist at all.
+  The default value "GeometricalCenter" is used instead.
+Transform parameters are initialized as: [1, 0, 0, 1, 0, 0]
+Scales are estimated automatically.
+Scales for transform parameters are: [21085.06637937941, 21525.634009646157, 21085.06637937941, 21525.634009646157, 1, 1]
+Initialization of all components (before registration) took: 14 ms.
+Preparation of the image pyramids took: 1 ms.
 
 Resolution: 0
-WARNING: The parameter "ExactMetricSampleGridSpacing", requested at entry number 0, does not exist at all.
-  The default value "1" is used instead.
-WARNING: The parameter "ExactMetricSampleGridSpacing", requested at entry number 1, does not exist at all.
-  The default value "1" is used instead.
+WARNING: The parameter "ShowExactMetricValue", requested at entry number 0, does not exist at all.
+  The default value "false" is used instead.
 WARNING: The parameter "CheckNumberOfSamples", requested at entry number 0, does not exist at all.
   The default value "true" is used instead.
 Setting the fixed masks took: 0 ms.
@@ -112,6 +121,8 @@ WARNING: The parameter "NumberOfBandStructureSamples", requested at entry number
   The default value "10" is used instead.
 WARNING: The parameter "UseAdaptiveStepSizes", requested at entry number 0, does not exist at all.
   The default value "true" is used instead.
+WARNING: The parameter "MaximumStepLength", requested at entry number 0, does not exist at all.
+  The default value "1" is used instead.
 WARNING: The parameter "NumberOfGradientMeasurements", requested at entry number 0, does not exist at all.
   The default value "0" is used instead.
 WARNING: The parameter "NumberOfJacobianMeasurements", requested at entry number 0, does not exist at all.
@@ -120,135 +131,135 @@ WARNING: The parameter "NumberOfSamplesForExactGradient", requested at entry num
   The default value "100000" is used instead.
 WARNING: The parameter "SigmoidScaleFactor", requested at entry number 0, does not exist at all.
   The default value "0.1" is used instead.
-Elastix initialization of all components (for this resolution) took: 1 ms.
+Elastix initialization of all components (for this resolution) took: 0 ms.
 Initialization of AdvancedMeanSquares metric took: 0 ms.
 Starting automatic parameter estimation for AdaptiveStochasticGradientDescent ...
 WARNING: The parameter "ASGDParameterEstimationMethod", requested at entry number 0, does not exist at all.
   The default value "Original" is used instead.
   Computing JacobianTerms ...
-  Computing the Jacobian terms took 0.001012s
-  NumberOfGradientMeasurements to estimate sigma_i: 16
+  Computing the Jacobian terms took 0.001426s
+  NumberOfGradientMeasurements to estimate sigma_i: 6
   Sampling gradients ...
-  Sampling the gradients took 0.319954s
-Automatic parameter estimation took 0.32s
-1:ItNr	2:Metric	3a:Time	3b:StepSize	4:||Gradient||	ExactMetric0	Time[ms]
-0	109.323438	0.000000	0.026757	9.429303	111.745932	347.9
-1	104.862555	0.000000	0.026757	7.866502	107.167067	19.6
-2	104.919407	0.000000	0.026757	8.266071	103.793048	17.2
-3	102.734585	0.000000	0.026757	8.929381	101.838965	20.8
-4	104.785736	0.000000	0.026757	7.497219	101.406564	16.9
-5	90.004403	0.000000	0.026757	7.242430	100.558249	18.1
-6	89.138716	0.000000	0.026757	7.421804	97.139505	16.8
-7	92.433581	0.000000	0.026757	7.358936	94.776316	22.2
-8	86.033257	0.000000	0.026757	6.084180	93.329723	16.9
-9	89.133332	0.000000	0.026757	7.997514	92.551459	17.6
-10	95.510062	0.000000	0.026757	9.695612	91.621302	17.7
-11	87.781959	0.000000	0.026757	5.936714	89.131047	21.9
-12	83.303462	0.000000	0.026757	6.799830	87.097762	20.4
-13	84.410953	0.000000	0.026757	7.503076	85.456359	22.2
-14	88.334863	0.000000	0.026757	6.450882	84.821405	17.7
-15	84.375629	0.000000	0.026757	6.228042	84.951961	18.4
-16	82.925795	0.000000	0.026757	6.652857	83.317138	22.4
-17	78.708011	0.000000	0.026757	8.332248	80.378300	18.9
-18	76.836750	0.000000	0.026757	7.800210	78.348467	16.9
-19	82.591510	0.000000	0.026757	6.221595	77.652691	24.7
-20	79.128407	0.000000	0.026757	7.175263	77.576496	21.3
-21	81.304028	0.000000	0.026757	8.494353	76.078272	18.2
-22	73.233898	0.000000	0.026757	5.759726	74.057682	21.1
-23	72.694922	0.000000	0.026757	8.064799	72.247174	19.8
-24	72.685199	0.000000	0.026757	5.773815	71.089904	20.0
-25	72.546035	0.000000	0.026757	8.294172	70.879479	19.9
-26	70.357780	0.000000	0.026757	6.643468	70.811162	24.9
-27	68.581118	0.000000	0.026757	5.250465	68.926025	17.2
-28	68.989201	0.000000	0.026757	5.871382	67.371792	17.5
-29	66.596300	0.000000	0.026757	5.202789	66.141873	18.6
-30	65.452242	0.000000	0.026757	5.655421	64.968207	16.9
-31	64.024412	0.000000	0.026757	6.696546	64.844206	21.4
-32	64.353774	0.000000	0.026757	7.990722	65.965399	23.5
-33	60.998995	0.000000	0.026757	6.411940	63.573485	17.9
-34	64.848511	0.000000	0.026757	6.430091	61.588195	23.2
-35	55.991390	0.000000	0.026757	4.206416	60.619057	17.6
-36	59.283817	0.000000	0.026757	6.941659	59.529038	24.6
-37	63.172213	0.000000	0.026757	5.669159	59.774933	22.2
-38	57.075777	0.000000	0.026757	6.017336	60.943891	20.1
-39	59.485013	0.000000	0.026757	3.593812	61.935020	22.1
-40	56.919638	0.000000	0.026757	5.658318	59.657706	20.0
-41	53.134687	0.000000	0.026757	5.300002	57.633685	19.9
-42	52.322519	0.000000	0.026757	4.607223	56.431007	25.4
-43	50.669357	0.000000	0.026757	5.323081	55.129711	17.9
-44	50.369609	0.000000	0.026757	4.298921	54.786335	21.5
-45	52.771159	0.000000	0.026757	5.970335	55.150583	22.7
-46	53.850192	0.000000	0.026757	6.193670	55.641870	18.5
-47	49.921278	0.000000	0.026757	5.772190	52.804153	20.0
-48	52.399303	0.000000	0.026757	4.135751	51.506866	18.6
-49	49.788563	0.000000	0.026757	3.375787	50.455859	20.1
-50	47.289344	0.000000	0.026757	5.336243	49.570328	19.3
-51	48.625596	0.000000	0.026757	4.953715	49.243146	22.8
-52	48.734754	0.000000	0.026757	4.043103	49.100800	19.2
-53	44.142247	0.000000	0.026757	5.062067	49.837136	21.2
-54	43.454035	0.000000	0.026757	4.549646	50.821082	16.8
-55	45.936239	0.000000	0.026757	5.418171	48.576331	17.0
-56	42.968098	0.000000	0.026757	4.175489	46.671169	17.1
-57	43.286227	0.000000	0.026757	4.444651	45.201847	18.8
-58	45.087028	0.000000	0.026757	3.356214	44.374055	24.7
-59	42.880303	0.000000	0.026757	4.887611	43.809703	18.4
-60	42.660145	0.000000	0.026757	3.839679	43.587186	18.2
-61	39.604258	0.000000	0.026757	3.478509	43.793096	20.3
-62	40.704972	0.000000	0.026757	4.596792	44.146877	19.8
-63	39.783699	0.000000	0.026757	4.171023	44.760025	19.3
-64	40.525535	0.000000	0.026757	4.290570	43.416028	18.3
-65	41.822958	0.000000	0.026757	3.911343	42.009511	18.4
-66	41.866286	0.000000	0.026757	3.852080	40.806389	18.6
-67	38.135964	0.000000	0.026757	3.745249	40.029095	19.5
-68	36.652119	0.000000	0.026757	4.708380	39.262032	19.0
-69	34.162266	0.000000	0.026757	4.287825	39.033519	19.4
-70	40.947974	0.000000	0.026757	4.424549	38.880276	24.7
-71	36.230985	0.000000	0.026757	3.666646	39.110355	22.1
-72	36.104733	0.000000	0.026757	3.342813	39.540284	23.7
-73	36.267061	0.000000	0.026757	3.850350	39.937323	24.6
-74	38.538038	0.000000	0.026757	2.886907	38.871434	17.7
-75	37.253745	0.000000	0.026757	3.521275	37.690753	18.5
-76	35.487103	0.000000	0.026757	1.924371	37.198220	17.8
-77	36.963839	0.000000	0.026757	2.918466	36.504769	25.1
-78	35.841004	0.000000	0.026757	3.869155	35.788175	17.6
-79	33.792882	0.000000	0.026757	3.734802	35.349446	20.0
-80	34.527641	0.000000	0.026757	4.188463	35.137282	17.4
-81	35.473023	0.000000	0.026757	2.572230	35.175885	17.9
-82	35.012830	0.000000	0.026757	2.378247	35.335101	18.8
-83	35.943863	0.000000	0.026757	3.327420	35.655763	20.7
-84	31.335293	0.000000	0.026757	3.069640	36.160068	16.6
-85	31.357621	0.000000	0.026757	3.361291	36.359595	21.4
-86	33.347668	0.000000	0.026757	3.599105	35.088875	18.1
-87	33.476046	0.000000	0.026757	3.877864	33.973184	23.8
-88	34.488928	0.000000	0.026757	3.999145	32.981534	19.9
-89	33.897219	0.000000	0.026757	3.777694	32.373466	22.8
-90	32.258545	0.000000	0.026757	3.545160	32.012095	19.8
-91	29.933725	0.000000	0.026757	2.954468	31.798722	17.7
-92	34.736230	0.000000	0.026757	4.019500	31.734684	22.3
-93	28.939876	0.000000	0.026757	2.967553	31.862910	17.0
-94	30.395817	0.000000	0.026757	2.062969	32.048473	19.2
-95	29.040496	0.000000	0.026757	3.596426	32.530939	17.7
-96	28.624366	0.000000	0.026757	2.867120	33.073258	17.0
-97	28.962152	0.000000	0.026757	3.847013	32.064318	18.0
-98	29.310260	0.000000	0.026757	2.682061	31.291314	21.2
-99	31.637939	0.000000	0.026757	2.924700	30.535214	19.8
-Time spent in resolution 0 (ITK initialization and iterating): 2.327 s.
+  Sampling the gradients took 0.136754s
+Automatic parameter estimation took 0.14s
+1:ItNr	2:Metric	3a:Time	3b:StepSize	4:||Gradient||	Time[ms]
+0	67.291798	0.000000	0.001733	22.501216	139.1
+1	49.670946	0.000000	0.001733	20.922771	0.3
+2	82.993755	0.878631	0.001663	33.089530	0.3
+3	66.872145	0.000000	0.001733	25.807778	0.4
+4	62.698816	0.999996	0.001654	33.898134	0.4
+5	43.224024	0.252818	0.001712	10.922396	0.3
+6	88.847151	0.000000	0.001733	30.603028	0.3
+7	39.913812	0.000000	0.001733	20.939355	0.3
+8	82.718149	0.971784	0.001656	13.469067	0.3
+9	51.462638	0.570434	0.001687	14.881978	0.3
+10	43.121139	1.414502	0.001623	23.423825	0.3
+11	74.894814	0.493302	0.001693	28.783219	0.3
+12	55.517326	0.000000	0.001733	33.680215	0.3
+13	70.894383	0.999986	0.001654	24.150224	0.3
+14	38.598261	0.036247	0.001730	14.615822	0.3
+15	27.450383	0.842924	0.001666	6.802752	0.3
+16	63.353938	0.701262	0.001677	13.587321	0.3
+17	86.654365	0.641275	0.001681	24.420665	0.3
+18	55.568970	0.000000	0.001733	22.990081	0.3
+19	61.083306	0.000000	0.001733	21.065868	0.3
+20	20.835301	0.000000	0.001733	14.095997	0.3
+21	66.972802	0.000000	0.001733	14.987449	0.3
+22	38.753901	0.890859	0.001662	10.036235	0.3
+23	48.085870	1.584114	0.001611	7.846328	0.3
+24	82.761483	1.484463	0.001618	26.834819	0.3
+25	74.247898	2.437928	0.001553	23.942112	0.3
+26	53.550484	1.514044	0.001616	16.521641	0.3
+27	42.767285	0.561348	0.001688	12.751761	0.4
+28	78.892448	0.000000	0.001733	42.101237	0.3
+29	42.544394	0.998153	0.001654	20.501307	0.3
+30	67.379003	0.034138	0.001730	28.827619	0.3
+31	33.978041	0.000000	0.001733	23.164876	0.3
+32	41.603913	0.000000	0.001733	12.828980	0.3
+33	72.188703	0.655971	0.001680	17.570076	0.3
+34	57.022410	0.152374	0.001720	18.752835	0.3
+35	48.314707	0.000000	0.001733	12.290410	0.3
+36	34.544783	0.939242	0.001659	4.005842	0.3
+37	58.541347	0.792283	0.001670	22.178098	0.3
+38	62.453372	1.167799	0.001641	27.798633	0.3
+39	62.499893	0.221147	0.001715	52.759742	0.3
+40	52.107213	1.221147	0.001638	14.724510	0.3
+41	54.216508	0.398831	0.001700	21.099479	0.3
+42	76.257638	1.331288	0.001629	13.744331	0.4
+43	37.280938	0.538072	0.001689	7.542661	0.3
+44	91.116680	0.634763	0.001682	48.090775	0.3
+45	23.047323	0.098675	0.001725	14.244628	0.3
+46	69.660127	0.000000	0.001733	54.357092	0.3
+47	79.839322	0.991289	0.001655	39.924447	0.3
+48	37.961702	0.027269	0.001730	18.732416	0.3
+49	55.235412	1.027262	0.001652	22.158494	0.3
+50	41.502553	0.065249	0.001727	11.313789	0.3
+51	58.023480	0.000000	0.001733	25.676215	0.3
+52	69.790370	0.480695	0.001694	23.766494	0.3
+53	73.216559	0.344248	0.001705	17.652428	0.3
+54	62.772324	0.325666	0.001706	17.054456	0.3
+55	109.808489	1.286337	0.001633	32.605805	0.3
+56	29.450637	1.016897	0.001653	12.620779	0.3
+57	63.828578	0.056452	0.001728	28.982494	0.4
+58	25.889920	0.420764	0.001699	18.065408	0.3
+59	59.303196	0.000000	0.001733	29.110483	0.3
+60	46.875763	0.931072	0.001659	16.463925	0.3
+61	30.909430	1.116182	0.001645	15.776513	0.3
+62	87.522234	1.709216	0.001602	16.978928	0.3
+63	55.509010	1.270357	0.001634	16.888164	0.3
+64	46.764994	0.417106	0.001699	17.539477	0.3
+65	40.051809	0.000000	0.001733	19.378540	0.3
+66	90.525902	0.000000	0.001733	24.434197	0.3
+67	47.786507	0.000000	0.001733	26.605504	0.3
+68	85.172573	0.948672	0.001658	49.044142	0.3
+69	60.154510	1.948672	0.001586	53.467723	0.3
+70	63.384066	0.984645	0.001655	40.438889	0.3
+71	25.397890	1.984645	0.001583	14.886447	0.3
+72	31.765766	2.981347	0.001517	25.605701	0.4
+73	46.066228	2.158711	0.001571	17.646302	0.4
+74	87.725406	3.156155	0.001506	34.873394	0.3
+75	65.510954	4.140343	0.001447	26.317517	0.5
+76	41.019470	3.189080	0.001504	18.456833	0.5
+77	27.946717	2.418915	0.001554	16.870212	0.5
+78	62.156491	2.607520	0.001541	11.140824	0.5
+79	55.619927	2.022500	0.001581	17.203966	0.4
+80	66.827087	2.540990	0.001546	23.499077	0.4
+81	52.702098	1.771167	0.001598	10.258308	0.6
+82	42.574105	0.844357	0.001666	16.868176	0.6
+83	70.639687	0.320248	0.001707	13.940251	0.3
+84	73.934509	0.000000	0.001733	15.110325	0.3
+85	47.373003	0.000000	0.001733	15.638171	0.3
+86	36.583429	0.295818	0.001709	19.331786	0.3
+87	75.360306	0.904237	0.001661	54.430276	0.3
+88	85.783615	0.000000	0.001733	20.994014	0.3
+89	63.547457	0.389430	0.001701	41.878707	0.3
+90	44.273434	1.286673	0.001633	19.270117	0.3
+91	52.555048	0.421337	0.001699	30.667350	0.3
+92	45.242926	0.000000	0.001733	17.658391	0.3
+93	74.940163	0.000000	0.001733	45.725549	0.3
+94	49.268558	0.933481	0.001659	6.245754	0.3
+95	82.639933	0.248753	0.001712	21.112130	0.3
+96	42.060739	0.213290	0.001715	10.217046	0.3
+97	47.189236	0.000000	0.001733	12.594908	0.3
+98	59.458825	0.000000	0.001733	15.921930	0.3
+99	57.695185	0.475324	0.001694	7.215363	0.3
+Time spent in resolution 0 (ITK initialization and iterating): 0.180 s.
 Stopping condition: Maximum number of iterations has been reached.
 Settings of AdaptiveStochasticGradientDescent in resolution 0:
-( SP_a 0.561889 )
+( SP_a 0.036388 )
 ( SP_A 20.000000 )
 ( SP_alpha 1.000000 )
 ( SigmoidMax 1.000000 )
-( SigmoidMin -0.411808 )
-( SigmoidScale 7.223718 )
+( SigmoidMin -0.964027 )
+( SigmoidScale 46.439634 )
 
 
 
 =============== start of TransformParameterFile ===============
-(Transform "TranslationTransform")
-(NumberOfParameters 2)
-(TransformParameters 43.233007 8.540212)
-(InitialTransformParametersFileName "NoInitialTransform")
+(Transform "AffineTransform")
+(NumberOfParameters 6)
+(TransformParameters 1.000089 -0.001292 -0.001517 0.998655 0.802708 0.182549)
+(InitialTransformParametersFileName "/Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/transformation-ch0-0005.tif.txt")
 (HowToCombineTransforms "Compose")
 
 // Image specific
@@ -263,41 +274,44 @@ Settings of AdaptiveStochasticGradientDescent in resolution 0:
 (Direction 1.0000000000 0.0000000000 0.0000000000 1.0000000000)
 (UseDirectionCosines "false")
 
+// AdvancedAffineTransform specific
+(CenterOfRotationPoint 263.6160330000 256.8296920000)
+
 // ResampleInterpolator specific
 (ResampleInterpolator "FinalLinearInterpolator")
 
 // Resampler specific
 (Resampler "DefaultResampler")
 (DefaultPixelValue 2.000000)
-(ResultImageFormat "mha")
-(ResultImagePixelType "float")
+(ResultImageFormat "h5")
+(ResultImagePixelType "short")
 (CompressResultImage "false")
 
 =============== end of TransformParameterFile ===============
 
-Registration result checksum: 3854332754
+Registration result checksum: 713026924
 
 Applying final transform ...
-  Applying final transform took 0.04s
+  Applying final transform took 0.06s
 
-Final metric value  = 31.637939
+Final metric value  = 57.695185
 Settings of AdaptiveStochasticGradientDescent for all resolutions:
-( SP_a 0.561889 )
+( SP_a 0.036388 )
 ( SP_A 20.000000 )
 ( SP_alpha 1.000000 )
 ( SigmoidMax 1.000000 )
-( SigmoidMin -0.411808 )
-( SigmoidScale 7.223718 )
+( SigmoidMin -0.964027 )
+( SigmoidScale 46.439634 )
 
-Time spent on saving the results, applying the final transform etc.: 36 ms.
+Time spent on saving the results, applying the final transform etc.: 64 ms.
 Running elastix with parameter file 0: "/Users/tischi/Documents/fiji-registration/example-data/2d-affine--fiji/elastix-parameters.txt", has finished.
 
 
-Current time: Mon Feb 20 10:03:44 2017.
+Current time: Mon Mar 27 20:58:36 2017.
 Time used for running elastix with this parameter file:
-  2.4s.
+  0.3s.
 
 -------------------------------------------------------------------------
 
-Total time elapsed: 2.5s.
+Total time elapsed: 0.4s.
 
