@@ -24,7 +24,7 @@ from ij.process import StackStatistics
 from ij.plugin import ImageCalculator
 from ij.measure import ResultsTable
 from ij.plugin.frame import RoiManager
-import os, os.path, re, sys
+import os, os.path, re, sysi
 from subprocess import Popen, PIPE
 from ij.process import ImageConverter
 import os, time, shutil, sys, math
@@ -708,6 +708,9 @@ def run():
     elif (get_os_version() == "linux"):
       p_gui['input_folder'] = {'choices': '', 'value': '/g/almfspim', 'type': 'folder'}
       p_gui['output_folder'] = {'choices': '', 'value': '/g/almfspim', 'type': 'folder'}
+    else:
+      p_gui['input_folder'] = {'choices': '', 'value': '', 'type': 'folder'}
+      p_gui['output_folder'] = {'choices': '', 'value': '', 'type': 'folder'}
 
     p_gui['version'] = {'choices': ['HenningNo5','Sandbox'], 'value': 'HenningNo5', 'type': 'string'}
     p_gui['output_format'] = {'choices': ['mha','h5'], 'value': 'h5', 'type': 'string'}
@@ -733,6 +736,9 @@ def run():
     elif (get_os_version() == "linux"):
       p_gui['elastix_binary_file'] = {'choices': '', 'value': '/g/almf/software/bin/run_elastix.sh', 'type': 'file'}
       p_gui['transformix_binary_file'] = {'choices': '', 'value': '/g/almf/software/bin/run_transformix.sh', 'type': 'file'}
+    else:
+      p_gui['elastix_binary_file'] = {'choices': '', 'value': '', 'type': 'file'}
+      p_gui['transformix_binary_file'] = {'choices': '', 'value': '', 'type': 'file'}
       
     p_gui['number_of_resolutions'] = {'value': ''}
     p_gui['elastix_parameter_file'] = {'value': ''}
