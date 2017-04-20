@@ -930,7 +930,7 @@ def run():
 
   if p['version'] == 'HenningNo5':
     make_parameter_file_version_HenningNo5(p)
-  elif p['version'] == 'sandbox':
+  elif p['version'] == 'Sandbox':
     make_parameter_file_version_Sandbox(p)
   
 
