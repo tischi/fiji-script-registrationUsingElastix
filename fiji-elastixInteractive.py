@@ -24,7 +24,7 @@ from ij.process import StackStatistics
 from ij.plugin import ImageCalculator
 from ij.measure import ResultsTable
 from ij.plugin.frame import RoiManager
-import os, os.path, re, sysi
+import os, os.path, re, sys
 from subprocess import Popen, PIPE
 from ij.process import ImageConverter
 import os, time, shutil, sys, math
